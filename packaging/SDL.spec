@@ -9,6 +9,7 @@ Url:            http://www.libsdl.org/
 Group:          System/Libraries
 Source:         http://www.libsdl.org/release/SDL-%{version}.tar.gz
 Source2:        baselibs.conf
+Source1001: 	SDL.manifest
 # PATCH-FIX-OPENSUSE SDL-1.2.13-x11-keytounicode.patch
 Patch0:         SDL-1.2.13-x11-keytounicode.patch
 BuildRequires:  autoconf
@@ -59,6 +60,7 @@ library.
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 %patch0
 
 # remove the file to provide sufficient evidence that we are
@@ -87,11 +89,13 @@ make %{?_smp_mflags}
 %postun -n libSDL -p /sbin/ldconfig
 
 %files -n libSDL
+%manifest %{name}.manifest
 %defattr(-,root,root)
 %doc COPYING
 %{_libdir}/*.so.*
 
 %files -n libSDL-devel
+%manifest %{name}.manifest
 %defattr(-,root,root)
 %{_bindir}/*
 %{_libdir}/*.so
