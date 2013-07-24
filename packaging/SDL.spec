@@ -10,8 +10,6 @@ Group:          System/Libraries
 Source:         http://www.libsdl.org/release/SDL-%{version}.tar.gz
 Source2:        baselibs.conf
 Source1001: 	SDL.manifest
-# PATCH-FIX-OPENSUSE SDL-1.2.13-x11-keytounicode.patch
-Patch0:         SDL-1.2.13-x11-keytounicode.patch
 BuildRequires:  autoconf
 BuildRequires:  gcc-c++
 BuildRequires:  libpulse-devel
@@ -61,7 +59,6 @@ library.
 %prep
 %setup -q
 cp %{SOURCE1001} .
-%patch0
 
 # remove the file to provide sufficient evidence that we are
 # not using this file during the build [bnc#508111]
