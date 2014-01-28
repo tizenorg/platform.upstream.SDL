@@ -1,4 +1,5 @@
 %define aalib   0
+%bcond_with x
 
 Name:           SDL
 Version:        1.2.15
@@ -19,7 +20,9 @@ BuildRequires:  nasm
 BuildRequires:  pkgconfig
 BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(glib-2.0)
+%if %{with x}
 BuildRequires:  pkgconfig(glu)
+%endif
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -48,7 +51,9 @@ Requires:       libstdc++-devel
 Requires:       mesa-devel
 Requires:       pkgconfig
 Requires:       pkgconfig(alsa)
+%if %{with x}
 Requires:       pkgconfig(glu)
+%endif
 Provides:       SDL-devel = %{version}
 Obsoletes:      SDL-devel < %{version}
 
