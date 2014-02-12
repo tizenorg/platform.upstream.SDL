@@ -1,0 +1,4 @@
+* Wed Feb 12 2014 Patrick McCarty <patrick.mccarty@linux.intel.com> c8e3278
+- Fix SDL build for the pure wayland profile: remove dependency on libGLU that
+  depends on libGL, an X-only package.
+
