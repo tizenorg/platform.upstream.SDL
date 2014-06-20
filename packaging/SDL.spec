@@ -44,7 +44,7 @@ across multiple platforms.
 
 %package -n libSDL-devel
 Summary:        SDL Library Developer Files
-Group:          Development/Libraries/X11
+Group:          System/Libraries
 Requires:       gcc
 Requires:       libSDL = %{version}
 Requires:       libstdc++-devel
@@ -93,7 +93,7 @@ make %{?_smp_mflags}
 %files -n libSDL
 %manifest %{name}.manifest
 %defattr(-,root,root)
-%doc COPYING
+%license COPYING
 %{_libdir}/*.so.*
 
 %files -n libSDL-devel
