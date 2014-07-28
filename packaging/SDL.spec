@@ -20,6 +20,9 @@ BuildRequires:  nasm
 BuildRequires:  pkgconfig
 BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(glib-2.0)
+%if %{with x}
+BuildRequires:  pkgconfig(glu)
+%endif
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
