@@ -40,6 +40,9 @@ typedef struct {
     struct SDL_WaylandInput *keyboard_device;
     EGLSurface egl_surface;
 
+    /* XDG Shell */
+    struct xdg_surface *xdgsurface;
+
 #ifdef SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
     struct qt_extended_surface *extended_surface;
 #endif /* SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH */    

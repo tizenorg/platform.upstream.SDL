@@ -55,6 +55,10 @@ SDL_WAYLAND_SYM(void, wl_list_insert_list, (struct wl_list *, struct wl_list *))
 SDL_WAYLAND_MODULE(WAYLAND_CLIENT_1_4)
 SDL_WAYLAND_SYM(struct wl_proxy *, wl_proxy_marshal_constructor, (struct wl_proxy *, uint32_t opcode, const struct wl_interface *interface, ...))
 
+SDL_WAYLAND_MODULE(WAYLAND_CLIENT_1_10)
+SDL_WAYLAND_SYM(struct wl_proxy *, wl_proxy_marshal_constructor_versioned, (struct wl_proxy *proxy, uint32_t opcode, const struct wl_interface *interface, uint32_t version, ...))
+
+
 SDL_WAYLAND_INTERFACE(wl_seat_interface)
 SDL_WAYLAND_INTERFACE(wl_surface_interface)
 SDL_WAYLAND_INTERFACE(wl_shm_pool_interface)
@@ -99,6 +103,10 @@ SDL_WAYLAND_SYM(enum xkb_state_component, xkb_state_update_mask, (struct xkb_sta
                       xkb_layout_index_t latched_layout,\
                       xkb_layout_index_t locked_layout) )
 
+/* xdg-shell */
+SDL_WAYLAND_MODULE(WAYLAND_XDGSHELLCLIENT)
+SDL_WAYLAND_INTERFACE(xdg_shell_interface)
+SDL_WAYLAND_INTERFACE(xdg_surface_interface)
 
 /* *INDENT-ON* */
 

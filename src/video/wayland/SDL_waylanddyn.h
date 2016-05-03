@@ -79,6 +79,7 @@ void SDL_WAYLAND_UnloadSymbols(void);
 #define wl_proxy_get_user_data (*WAYLAND_wl_proxy_get_user_data)
 #define wl_proxy_add_listener (*WAYLAND_wl_proxy_add_listener)
 #define wl_proxy_marshal_constructor (*WAYLAND_wl_proxy_marshal_constructor)
+#define wl_proxy_marshal_constructor_versioned (*WAYLAND_wl_proxy_marshal_constructor_versioned)
 
 #define wl_seat_interface (*WAYLAND_wl_seat_interface)
 #define wl_surface_interface (*WAYLAND_wl_surface_interface)
@@ -93,11 +94,15 @@ void SDL_WAYLAND_UnloadSymbols(void);
 #define wl_output_interface (*WAYLAND_wl_output_interface)
 #define wl_shell_interface (*WAYLAND_wl_shell_interface)
 #define wl_shm_interface (*WAYLAND_wl_shm_interface)
+/*xdg-shell*/
+#define xdg_shell_interface (*WAYLAND_xdg_shell_interface)
+#define xdg_surface_interface (*WAYLAND_xdg_surface_interface)
 
 #endif /* SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC */
 
 #include "wayland-client.h"
 #include "wayland-egl.h"
+#include <wayland-extension/xdg-shell-client-protocol.h>
 
 #endif /* !defined _SDL_waylanddyn_h */
 
