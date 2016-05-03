@@ -1,45 +1,48 @@
 /*
-  Simple DirectMedia Layer
-  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
+    SDL - Simple DirectMedia Layer
+    Copyright (C) 1997-2012 Sam Lantinga
 
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
 
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
 
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
+    You should have received a copy of the GNU Library General Public
+    License along with this library; if not, write to the Free
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Sam Lantinga
+    slouken@libsdl.org
 */
-#include "../../SDL_internal.h"
+#include "SDL_config.h"
 
-#ifndef _SDL_ALSA_audio_h
-#define _SDL_ALSA_audio_h
+#ifndef _ALSA_PCM_audio_h
+#define _ALSA_PCM_audio_h
 
 #include <alsa/asoundlib.h>
 
 #include "../SDL_sysaudio.h"
 
-/* Hidden "this" pointer for the audio functions */
-#define _THIS   SDL_AudioDevice *this
+/* Hidden "this" pointer for the video functions */
+#define _THIS	SDL_AudioDevice *this
 
-struct SDL_PrivateAudioData
-{
-    /* The audio device handle */
-    snd_pcm_t *pcm_handle;
+struct SDL_PrivateAudioData {
+	/* The audio device handle */
+	snd_pcm_t *pcm_handle;
 
-    /* Raw mixing buffer */
-    Uint8 *mixbuf;
-    int mixlen;
+	/* Raw mixing buffer */
+	Uint8 *mixbuf;
+	int    mixlen;
 };
 
-#endif /* _SDL_ALSA_audio_h */
+/* Old variable names */
+#define pcm_handle		(this->hidden->pcm_handle)
+#define mixbuf			(this->hidden->mixbuf)
+#define mixlen			(this->hidden->mixlen)
 
-/* vi: set ts=4 sw=4 expandtab: */
+#endif /* _ALSA_PCM_audio_h */

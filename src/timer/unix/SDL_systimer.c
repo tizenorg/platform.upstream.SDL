@@ -1,231 +1,240 @@
 /*
-  Simple DirectMedia Layer
-  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
+    SDL - Simple DirectMedia Layer
+    Copyright (C) 1997-2012 Sam Lantinga
 
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+    Sam Lantinga
+    slouken@libsdl.org
 */
-#include "../../SDL_internal.h"
+#include "SDL_config.h"
 
 #ifdef SDL_TIMER_UNIX
 
 #include <stdio.h>
 #include <sys/time.h>
+#include <signal.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
 
 #include "SDL_timer.h"
-#include "SDL_assert.h"
+#include "../SDL_timer_c.h"
 
 /* The clock_gettime provides monotonous time, so we should use it if
    it's available. The clock_gettime function is behind ifdef
    for __USE_POSIX199309
    Tommi Kyntola (tommi.kyntola@ray.fi) 27/09/2005
 */
-/* Reworked monotonic clock to not assume the current system has one
-   as not all linux kernels provide a monotonic clock (yeah recent ones
-   probably do)
-   Also added OS X Monotonic clock support
-   Based on work in https://github.com/ThomasHabets/monotonic_clock
- */
 #if HAVE_NANOSLEEP || HAVE_CLOCK_GETTIME
 #include <time.h>
 #endif
-#ifdef __APPLE__
-#include <mach/mach_time.h>
+
+#if SDL_THREAD_PTH
+#include <pth.h>
 #endif
 
-/* Use CLOCK_MONOTONIC_RAW, if available, which is not subject to adjustment by NTP */
-#if HAVE_CLOCK_GETTIME
-#ifdef CLOCK_MONOTONIC_RAW
-#define SDL_MONOTONIC_CLOCK CLOCK_MONOTONIC_RAW
-#else
-#define SDL_MONOTONIC_CLOCK CLOCK_MONOTONIC
-#endif
+#if SDL_THREADS_DISABLED
+#define USE_ITIMER
 #endif
 
 /* The first ticks value of the application */
-#if HAVE_CLOCK_GETTIME
-static struct timespec start_ts;
-#elif defined(__APPLE__)
-static uint64_t start_mach;
-mach_timebase_info_data_t mach_base_info;
-#endif
-static SDL_bool has_monotonic_time = SDL_FALSE;
-static struct timeval start_tv;
-static SDL_bool ticks_started = SDL_FALSE;
-
-void
-SDL_TicksInit(void)
-{
-    if (ticks_started) {
-        return;
-    }
-    ticks_started = SDL_TRUE;
-
-    /* Set first ticks value */
-#if HAVE_CLOCK_GETTIME
-    if (clock_gettime(SDL_MONOTONIC_CLOCK, &start_ts) == 0) {
-        has_monotonic_time = SDL_TRUE;
-    } else
-#elif defined(__APPLE__)
-    kern_return_t ret = mach_timebase_info(&mach_base_info);
-    if (ret == 0) {
-        has_monotonic_time = SDL_TRUE;
-        start_mach = mach_absolute_time();
-    } else
-#endif
-    {
-        gettimeofday(&start_tv, NULL);
-    }
-}
-
-void
-SDL_TicksQuit(void)
-{
-    ticks_started = SDL_FALSE;
-}
-
-Uint32
-SDL_GetTicks(void)
-{
-    Uint32 ticks;
-    if (!ticks_started) {
-        SDL_TicksInit();
-    }
-
-    if (has_monotonic_time) {
-#if HAVE_CLOCK_GETTIME
-        struct timespec now;
-        clock_gettime(SDL_MONOTONIC_CLOCK, &now);
-        ticks = (now.tv_sec - start_ts.tv_sec) * 1000 + (now.tv_nsec -
-                                                 start_ts.tv_nsec) / 1000000;
-#elif defined(__APPLE__)
-        uint64_t now = mach_absolute_time();
-        ticks = (Uint32)((((now - start_mach) * mach_base_info.numer) / mach_base_info.denom) / 1000000);
+#ifdef HAVE_CLOCK_GETTIME
+static struct timespec start;
 #else
-        SDL_assert(SDL_FALSE);
-        ticks = 0;
-#endif
-    } else {
-        struct timeval now;
+static struct timeval start;
+#endif /* HAVE_CLOCK_GETTIME */
 
-        gettimeofday(&now, NULL);
-        ticks = (Uint32)((now.tv_sec - start_tv.tv_sec) * 1000 + (now.tv_usec - start_tv.tv_usec) / 1000);
-    }
-    return (ticks);
-}
 
-Uint64
-SDL_GetPerformanceCounter(void)
+void SDL_StartTicks(void)
 {
-    Uint64 ticks;
-    if (!ticks_started) {
-        SDL_TicksInit();
-    }
-
-    if (has_monotonic_time) {
+	/* Set first ticks value */
 #if HAVE_CLOCK_GETTIME
-        struct timespec now;
-
-        clock_gettime(SDL_MONOTONIC_CLOCK, &now);
-        ticks = now.tv_sec;
-        ticks *= 1000000000;
-        ticks += now.tv_nsec;
-#elif defined(__APPLE__)
-        ticks = mach_absolute_time();
+	clock_gettime(CLOCK_MONOTONIC,&start);
 #else
-        SDL_assert(SDL_FALSE);
-        ticks = 0;
+	gettimeofday(&start, NULL);
 #endif
-    } else {
-        struct timeval now;
-
-        gettimeofday(&now, NULL);
-        ticks = now.tv_sec;
-        ticks *= 1000000;
-        ticks += now.tv_usec;
-    }
-    return (ticks);
 }
 
-Uint64
-SDL_GetPerformanceFrequency(void)
+Uint32 SDL_GetTicks (void)
 {
-    if (!ticks_started) {
-        SDL_TicksInit();
-    }
-
-    if (has_monotonic_time) {
 #if HAVE_CLOCK_GETTIME
-        return 1000000000;
-#elif defined(__APPLE__)
-        Uint64 freq = mach_base_info.denom;
-        freq *= 1000000000;
-        freq /= mach_base_info.numer;
-        return freq;
+	Uint32 ticks;
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC,&now);
+	ticks=(now.tv_sec-start.tv_sec)*1000+(now.tv_nsec-start.tv_nsec)/1000000;
+	return(ticks);
+#else
+	Uint32 ticks;
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	ticks=(now.tv_sec-start.tv_sec)*1000+(now.tv_usec-start.tv_usec)/1000;
+	return(ticks);
 #endif
-    } 
-        
-    return 1000000;
 }
 
-void
-SDL_Delay(Uint32 ms)
+void SDL_Delay (Uint32 ms)
 {
-    int was_error;
+#if SDL_THREAD_PTH
+	pth_time_t tv;
+	tv.tv_sec  =  ms/1000;
+	tv.tv_usec = (ms%1000)*1000;
+	pth_nap(tv);
+#else
+	int was_error;
 
 #if HAVE_NANOSLEEP
-    struct timespec elapsed, tv;
+	struct timespec elapsed, tv;
 #else
-    struct timeval tv;
-    Uint32 then, now, elapsed;
+	struct timeval tv;
+	Uint32 then, now, elapsed;
 #endif
 
-    /* Set the timeout interval */
+	/* Set the timeout interval */
 #if HAVE_NANOSLEEP
-    elapsed.tv_sec = ms / 1000;
-    elapsed.tv_nsec = (ms % 1000) * 1000000;
+	elapsed.tv_sec = ms/1000;
+	elapsed.tv_nsec = (ms%1000)*1000000;
 #else
-    then = SDL_GetTicks();
+	then = SDL_GetTicks();
 #endif
-    do {
-        errno = 0;
+	do {
+		errno = 0;
 
 #if HAVE_NANOSLEEP
-        tv.tv_sec = elapsed.tv_sec;
-        tv.tv_nsec = elapsed.tv_nsec;
-        was_error = nanosleep(&tv, &elapsed);
+		tv.tv_sec = elapsed.tv_sec;
+		tv.tv_nsec = elapsed.tv_nsec;
+		was_error = nanosleep(&tv, &elapsed);
 #else
-        /* Calculate the time interval left (in case of interrupt) */
-        now = SDL_GetTicks();
-        elapsed = (now - then);
-        then = now;
-        if (elapsed >= ms) {
-            break;
-        }
-        ms -= elapsed;
-        tv.tv_sec = ms / 1000;
-        tv.tv_usec = (ms % 1000) * 1000;
+		/* Calculate the time interval left (in case of interrupt) */
+		now = SDL_GetTicks();
+		elapsed = (now-then);
+		then = now;
+		if ( elapsed >= ms ) {
+			break;
+		}
+		ms -= elapsed;
+		tv.tv_sec = ms/1000;
+		tv.tv_usec = (ms%1000)*1000;
 
-        was_error = select(0, NULL, NULL, NULL, &tv);
+		was_error = select(0, NULL, NULL, NULL, &tv);
 #endif /* HAVE_NANOSLEEP */
-    } while (was_error && (errno == EINTR));
+	} while ( was_error && (errno == EINTR) );
+#endif /* SDL_THREAD_PTH */
 }
+
+#ifdef USE_ITIMER
+
+static void HandleAlarm(int sig)
+{
+	Uint32 ms;
+
+	if ( SDL_alarm_callback ) {
+		ms = (*SDL_alarm_callback)(SDL_alarm_interval);
+		if ( ms != SDL_alarm_interval ) {
+			SDL_SetTimer(ms, SDL_alarm_callback);
+		}
+	}
+}
+
+int SDL_SYS_TimerInit(void)
+{
+	struct sigaction action;
+
+	/* Set the alarm handler (Linux specific) */
+	SDL_memset(&action, 0, sizeof(action));
+	action.sa_handler = HandleAlarm;
+	action.sa_flags = SA_RESTART;
+	sigemptyset(&action.sa_mask);
+	sigaction(SIGALRM, &action, NULL);
+	return(0);
+}
+
+void SDL_SYS_TimerQuit(void)
+{
+	SDL_SetTimer(0, NULL);
+}
+
+int SDL_SYS_StartTimer(void)
+{
+	struct itimerval timer;
+
+	timer.it_value.tv_sec = (SDL_alarm_interval/1000);
+	timer.it_value.tv_usec = (SDL_alarm_interval%1000)*1000;
+	timer.it_interval.tv_sec = (SDL_alarm_interval/1000);
+	timer.it_interval.tv_usec = (SDL_alarm_interval%1000)*1000;
+	setitimer(ITIMER_REAL, &timer, NULL);
+	return(0);
+}
+
+void SDL_SYS_StopTimer(void)
+{
+	struct itimerval timer;
+
+	SDL_memset(&timer, 0, (sizeof timer));
+	setitimer(ITIMER_REAL, &timer, NULL);
+}
+
+#else /* USE_ITIMER */
+
+#include "SDL_thread.h"
+
+/* Data to handle a single periodic alarm */
+static int timer_alive = 0;
+static SDL_Thread *timer = NULL;
+
+static int RunTimer(void *unused)
+{
+	while ( timer_alive ) {
+		if ( SDL_timer_running ) {
+			SDL_ThreadedTimerCheck();
+		}
+		SDL_Delay(1);
+	}
+	return(0);
+}
+
+/* This is only called if the event thread is not running */
+int SDL_SYS_TimerInit(void)
+{
+	timer_alive = 1;
+	timer = SDL_CreateThread(RunTimer, NULL);
+	if ( timer == NULL )
+		return(-1);
+	return(SDL_SetTimerThreaded(1));
+}
+
+void SDL_SYS_TimerQuit(void)
+{
+	timer_alive = 0;
+	if ( timer ) {
+		SDL_WaitThread(timer, NULL);
+		timer = NULL;
+	}
+}
+
+int SDL_SYS_StartTimer(void)
+{
+	SDL_SetError("Internal logic error: Linux uses threaded timer");
+	return(-1);
+}
+
+void SDL_SYS_StopTimer(void)
+{
+	return;
+}
+
+#endif /* USE_ITIMER */
 
 #endif /* SDL_TIMER_UNIX */
-
-/* vi: set ts=4 sw=4 expandtab: */
