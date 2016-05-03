@@ -1177,9 +1177,9 @@ AC_HELP_STRING([--enable-video-wayland-qt-touch], [QtWayland server support for 
         if  test x$PKG_CONFIG != xno && \
             test x$video_opengl_egl = xyes && \
             test x$video_opengles_v2 = xyes; then
-            if $PKG_CONFIG --exists wayland-client wayland-egl wayland-cursor egl xkbcommon ; then
-                WAYLAND_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl wayland-cursor xkbcommon`
-                WAYLAND_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl wayland-cursor xkbcommon`
+            if $PKG_CONFIG --exists wayland-client wayland-egl wayland-cursor egl xkbcommon xdg-shell-client text-client tizen-extension-client ; then
+                WAYLAND_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl wayland-cursor xkbcommon xdg-shell-client text-client tizen-extension-client`
+                WAYLAND_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl wayland-cursor xkbcommon xdg-shell-client text-client tizen-extension-client`
                 video_wayland=yes
             fi
         fi
@@ -1207,6 +1207,9 @@ AC_HELP_STRING([--enable-wayland-shared], [dynamically load Wayland support [[de
                     fi
                     wayland_cursor_lib=[`find_lib "libwayland-cursor.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`]
                     xkbcommon_lib=[`find_lib "libxkbcommon.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`]
+                    xdg_shell_client_lib=[`find_lib "libxdg-shell-client.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`]
+                    text_client_lib=[`find_lib "libtext-client.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`]
+                    tizen_extension_client_lib=[`find_lib "libtizen-extension-client.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`]
                     ;;
             esac
 
@@ -1223,15 +1226,24 @@ AC_HELP_STRING([--enable-wayland-shared], [dynamically load Wayland support [[de
                test x$wayland_client_lib != x && \
                test x$wayland_egl_lib != x && \
                test x$wayland_cursor_lib != x && \
+               test x$xdg_shell_client_lib != x && \
+               test x$text_client_lib != x && \
+               test x$tizen_extension_client_lib != x && \
                test x$xkbcommon_lib != x; then
                 echo "-- dynamic libwayland-client -> $wayland_client_lib"
                 echo "-- dynamic libwayland-egl -> $wayland_egl_lib"
                 echo "-- dynamic libwayland-cursor -> $wayland_cursor_lib"
                 echo "-- dynamic libxkbcommon -> $xkbcommon_lib"
+                echo "-- dynamic libxdg_shell_client -> $xdg_shell_client_lib"
+                echo "-- dynamic libtext_client -> $xtext_client_lib"
+                echo "-- dynamic libtizen_extension_client -> $xtizen_extension_client_lib"
                 AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC, "$wayland_client_lib", [ ])
                 AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_EGL, "$wayland_egl_lib", [ ])
                 AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_CURSOR, "$wayland_cursor_lib", [ ])
                 AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_XKBCOMMON, "$xkbcommon_lib", [ ])
+                AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_XDGSHELLCLIENT, "$xdg_shell_client_lib", [ ])
+                AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_TEXTCLIENT, "$text_client_lib", [ ])
+                AC_DEFINE_UNQUOTED(SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_TIZENEXTENSIONCLIENT, "$tizen_extension_client_lib", [ ])
                 SUMMARY_video="${SUMMARY_video} wayland(dynamic)"
             else
                 enable_wayland_shared=no

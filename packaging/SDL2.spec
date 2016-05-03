@@ -22,9 +22,16 @@ Provides: libSDL2-2.0.so.0
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
-BuildRequires:  pkgconfig(xrender)
-BuildRequires:  pkgconfig(x11)
-BuildRequires:  pkgconfig(xext)
+BuildRequires:  pkgconfig(egl)
+BuildRequires:  pkgconfig(glesv2)
+BuildRequires:  pkgconfig(wayland-client)
+BuildRequires:  pkgconfig(wayland-cursor)
+BuildRequires:  pkgconfig(wayland-egl)
+BuildRequires:  pkgconfig(text-client)
+BuildRequires:  pkgconfig(xdg-shell-client)
+BuildRequires:  pkgconfig(tizen-extension-client)
+Requires:       libwayland-extension-client
+BuildRequires:  pkgconfig(xkbcommon)
 BuildRequires:  pkgconfig(libpng)
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:  pkgconfig(pixman-1)
@@ -32,15 +39,9 @@ BuildRequires:  pkgconfig(freetype2)
 BuildRequires:  pkgconfig(fontconfig)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(sm)
-BuildRequires:  pkgconfig(xt)
-BuildRequires:  pkgconfig(xcb)
-BuildRequires:  pkgconfig(xcb-render)
-BuildRequires:  pkgconfig(xcb-shm)
-BuildRequires:  pkgconfig(opengl-es-20)
 BuildRequires:  binutils-devel
 BuildRequires:  which
 BuildRequires:  autoconf
-
 
 %description
 This is the Simple DirectMedia Layer, a generic API that provides low
@@ -66,7 +67,7 @@ to develop SDL applications.
 
 %build
 %ifos linux
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix} --disable-video-directfb
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix} --disable-video-directfb --enable-video-wayland
 %else
 %configure
 %endif

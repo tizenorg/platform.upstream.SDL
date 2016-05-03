@@ -30,6 +30,7 @@
 #include "SDL_waylandvideo.h"
 #include "SDL_waylandtouch.h"
 #include "SDL_waylanddyn.h"
+#include <wayland-extension/xdg-shell-client-protocol.h>
 
 static void
 handle_ping(void *data, struct wl_shell_surface *shell_surface,
@@ -66,6 +67,36 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
     handle_ping,
     handle_configure,
     handle_popup_done
+};
+
+
+static void
+_sdl_xdg_handle_surface_configure(void *data, struct xdg_surface *xdgsurface, int32_t width, int32_t height, struct wl_array *states, uint32_t serial)
+{
+   SDL_WindowData *win = (SDL_WindowData *)data;
+   //uint32_t *p;
+
+   fprintf(stderr,"%s:: %d, width %d, height %d\n",__FUNCTION__,__LINE__,width,height);
+   // TODO : resize
+/*
+   if ((width > 0) && (height > 0))
+     _ecore_wl_window_configure_send(win, width, height, 0);
+*/
+
+   if (win->xdgsurface)
+     xdg_surface_ack_configure(win->xdgsurface, serial);
+}
+
+static void
+_sdl_xdg_handle_surface_delete(void *data, struct xdg_surface *xdgsurface)
+{
+   fprintf(stderr,"%s:: %d\n",__FUNCTION__,__LINE__);
+}
+
+static const struct xdg_surface_listener _sdl_xdg_surface_listener =
+{
+   _sdl_xdg_handle_surface_configure,
+   _sdl_xdg_handle_surface_delete,
 };
 
 #ifdef SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
@@ -176,8 +207,23 @@ int Wayland_CreateWindow(_THIS, SDL_Window *window)
     data->surface =
         wl_compositor_create_surface(c->compositor);
     wl_surface_set_user_data(data->surface, data);
-    data->shell_surface = wl_shell_get_shell_surface(c->shell,
-                                                     data->surface);
+
+    /* XDG shell */
+    if (c->xdgshell)
+    {
+        data->xdgsurface = xdg_shell_get_xdg_surface(c->xdgshell,data->surface);
+        xdg_surface_set_user_data(data->xdgsurface, data);
+        xdg_surface_add_listener(data->xdgsurface,
+                                 &_sdl_xdg_surface_listener, data);
+        fprintf(stderr,"%s:: %d, xdg_shell_get_xdg_surface %p\n",__FUNCTION__,__LINE__,data->xdgsurface);
+    }
+    else if (c->shell)
+    {
+        /* WL Shell */
+        data->shell_surface = wl_shell_get_shell_surface(c->shell,
+                                                         data->surface);
+        fprintf(stderr,"%s:: %d, wl_shell_get_shell_surface %p\n",__FUNCTION__,__LINE__,data->shell_surface);
+    }
 #ifdef SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH    
     if (c->surface_extension) {
         data->extended_surface = qt_surface_extension_get_extended_surface(

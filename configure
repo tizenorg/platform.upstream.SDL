@@ -18767,9 +18767,9 @@ $as_echo_n "checking for Wayland support... " >&6; }
         if  test x$PKG_CONFIG != xno && \
             test x$video_opengl_egl = xyes && \
             test x$video_opengles_v2 = xyes; then
-            if $PKG_CONFIG --exists wayland-client wayland-egl wayland-cursor egl xkbcommon ; then
-                WAYLAND_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl wayland-cursor xkbcommon`
-                WAYLAND_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl wayland-cursor xkbcommon`
+            if $PKG_CONFIG --exists wayland-client wayland-egl wayland-cursor egl xkbcommon xdg-shell-client text-client tizen-extension-client ; then
+                WAYLAND_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl wayland-cursor xkbcommon xdg-shell-client text-client tizen-extension-client`
+                WAYLAND_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl wayland-cursor xkbcommon xdg-shell-client text-client tizen-extension-client`
                 video_wayland=yes
             fi
         fi
@@ -18804,6 +18804,9 @@ fi
                     fi
                     wayland_cursor_lib=`find_lib "libwayland-cursor.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`
                     xkbcommon_lib=`find_lib "libxkbcommon.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`
+                    xdg_shell_client_lib=`find_lib "libxdg-shell-client.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`
+                    text_client_lib=`find_lib "libtext-client.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`
+                    tizen_extension_client_lib=`find_lib "libtizen-extension-client.so.*" "$WAYLAND_LIBS" | sed 's/.*\/\(.*\)/\1/; q'`
                     ;;
             esac
 
@@ -18821,11 +18824,17 @@ $as_echo "$as_me: WARNING: You must have SDL_LoadObject() support for dynamic Wa
                test x$wayland_client_lib != x && \
                test x$wayland_egl_lib != x && \
                test x$wayland_cursor_lib != x && \
+               test x$xdg_shell_client_lib != x && \
+               test x$text_client_lib != x && \
+               test x$tizen_extension_client_lib != x && \
                test x$xkbcommon_lib != x; then
                 echo "-- dynamic libwayland-client -> $wayland_client_lib"
                 echo "-- dynamic libwayland-egl -> $wayland_egl_lib"
                 echo "-- dynamic libwayland-cursor -> $wayland_cursor_lib"
                 echo "-- dynamic libxkbcommon -> $xkbcommon_lib"
+                echo "-- dynamic libxdg_shell_client -> $xdg_shell_client_lib"
+                echo "-- dynamic libtext_client -> $text_client_lib"
+                echo "-- dynamic libtizen_extension_client -> $tizen_extension_client_lib"
 
 cat >>confdefs.h <<_ACEOF
 #define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC "$wayland_client_lib"
@@ -18844,6 +18853,21 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_XKBCOMMON "$xkbcommon_lib"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_XDGSHELLCLIENT "$xdg_shell_client_lib"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_TEXTCLIENT "$text_client_lib"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_TIZENEXTENSIONCLIENT "$tizen_extension_client_lib"
 _ACEOF
 
                 SUMMARY_video="${SUMMARY_video} wayland(dynamic)"

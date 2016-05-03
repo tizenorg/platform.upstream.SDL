@@ -465,6 +465,8 @@ SDL_VideoInit(const char *driver_name)
         return -1;
     }
 
+    /* For Tizen */
+    driver_name = "wayland";
     /* Select the proper video driver */
     index = 0;
     video = NULL;

@@ -39,9 +39,11 @@
 #include <xkbcommon/xkbcommon.h>
 
 #include "SDL_waylanddyn.h"
+#include <wayland-extension/xdg-shell-client-protocol.h>
 #include <wayland-util.h>
 
 #define WAYLANDVID_DRIVER_NAME "wayland"
+#define XDG_VERSION 5
 
 /* Initialization/Query functions */
 static int
@@ -236,6 +238,18 @@ static const struct qt_windowmanager_listener windowmanager_listener = {
 };
 #endif /* SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH */
 
+/* xdg shell */
+static void
+xdg_shell_ping(void *data, struct xdg_shell *shell, uint32_t serial)
+{
+   xdg_shell_pong(shell, serial);
+}
+
+static const struct xdg_shell_listener xdg_shell_listener =
+{
+   xdg_shell_ping,
+};
+
 static void
 display_handle_global(void *data, struct wl_registry *registry, uint32_t id,
                       const char *interface, uint32_t version)
@@ -248,6 +262,10 @@ display_handle_global(void *data, struct wl_registry *registry, uint32_t id,
         Wayland_add_display(d, id);
     } else if (strcmp(interface, "wl_seat") == 0) {
         Wayland_display_add_input(d, id);
+    } else if (strcmp(interface, "xdg_shell") == 0) {
+        d->xdgshell =  wl_registry_bind(d->registry, id, &xdg_shell_interface, 1);
+        xdg_shell_use_unstable_version(d->xdgshell, XDG_VERSION);
+        xdg_shell_add_listener(d->xdgshell, &xdg_shell_listener,d->display);
     } else if (strcmp(interface, "wl_shell") == 0) {
         d->shell = wl_registry_bind(d->registry, id, &wl_shell_interface, 1);
     } else if (strcmp(interface, "wl_shm") == 0) {
