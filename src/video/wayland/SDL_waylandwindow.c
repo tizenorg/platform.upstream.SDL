@@ -151,11 +151,21 @@ void Wayland_ShowWindow(_THIS, SDL_Window *window)
     SDL_WindowData *wind = window->driverdata;
 
     if (window->flags & SDL_WINDOW_FULLSCREEN)
-        wl_shell_surface_set_fullscreen(wind->shell_surface,
-                                        WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT,
-                                        0, (struct wl_output *)window->fullscreen_mode.driverdata);
+    {
+        if (wind->xdgsurface)
+            xdg_surface_set_fullscreen(wind->xdgsurface, (struct wl_output *)window->fullscreen_mode.driverdata);
+        else if(wind->shell_surface)
+            wl_shell_surface_set_fullscreen(wind->shell_surface,
+                                            WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT,
+                                            0, (struct wl_output *)window->fullscreen_mode.driverdata);
+    }
     else
-        wl_shell_surface_set_toplevel(wind->shell_surface);
+    {
+        if (wind->xdgsurface)
+            xdg_surface_set_parent(wind->xdgsurface, NULL);
+        else if (wind->shell_surface)
+            wl_shell_surface_set_toplevel(wind->shell_surface);
+    }
 
     WAYLAND_wl_display_flush( ((SDL_VideoData*)_this->driverdata)->display );
 }
@@ -167,11 +177,22 @@ Wayland_SetWindowFullscreen(_THIS, SDL_Window * window,
     SDL_WindowData *wind = window->driverdata;
 
     if (fullscreen)
-        wl_shell_surface_set_fullscreen(wind->shell_surface,
-                                        WL_SHELL_SURFACE_FULLSCREEN_METHOD_SCALE,
-                                        0, (struct wl_output *)_display->driverdata);
+    {
+        if (wind->xdgsurface)
+            xdg_surface_set_fullscreen(wind->xdgsurface, (struct wl_output *)_display->driverdata);
+
+        if(wind->shell_surface)
+            wl_shell_surface_set_fullscreen(wind->shell_surface,
+                                            WL_SHELL_SURFACE_FULLSCREEN_METHOD_SCALE,
+                                            0, (struct wl_output *)_display->driverdata);
+    }
     else
-        wl_shell_surface_set_toplevel(wind->shell_surface);
+    {
+        if (wind->xdgsurface)
+            xdg_surface_unset_fullscreen(wind->xdgsurface);
+        else if (wind->shell_surface)
+            wl_shell_surface_set_toplevel(wind->shell_surface);
+    }
 
     WAYLAND_wl_display_flush( ((SDL_VideoData*)_this->driverdata)->display );
 }
@@ -287,6 +308,10 @@ void Wayland_DestroyWindow(_THIS, SDL_Window *window)
     if (data) {
         SDL_EGL_DestroySurface(_this, wind->egl_surface);
         WAYLAND_wl_egl_window_destroy(wind->egl_window);
+
+        if (wind->xdgsurface)
+            xdg_surface_destroy(wind->xdgsurface);
+        wind->xdgsurface = NULL;
 
         if (wind->shell_surface)
             wl_shell_surface_destroy(wind->shell_surface);
