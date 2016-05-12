@@ -149,6 +149,9 @@ ProcessHitTest(struct SDL_WaylandInput *input, uint32_t serial)
         };
         switch (rc) {
             case SDL_HITTEST_DRAGGABLE:
+            if (window_data->xdgsurface)
+                xdg_surface_move(window_data->xdgsurface, input->seat, serial);
+            else if (window_data->shell_surface)
                 wl_shell_surface_move(window_data->shell_surface, input->seat, serial);
                 return SDL_TRUE;
 
@@ -160,7 +163,10 @@ ProcessHitTest(struct SDL_WaylandInput *input, uint32_t serial)
             case SDL_HITTEST_RESIZE_BOTTOM:
             case SDL_HITTEST_RESIZE_BOTTOMLEFT:
             case SDL_HITTEST_RESIZE_LEFT:
-                wl_shell_surface_resize(window_data->shell_surface, input->seat, serial, directions[rc - SDL_HITTEST_RESIZE_TOPLEFT]);
+                if (window_data->xdgsurface)
+                    xdg_surface_resize(window_data->xdgsurface, input->seat, serial, directions[rc - SDL_HITTEST_RESIZE_TOPLEFT]);
+                else if (window_data->shell_surface)
+                    wl_shell_surface_resize(window_data->shell_surface, input->seat, serial, directions[rc - SDL_HITTEST_RESIZE_TOPLEFT]);
                 return SDL_TRUE;
 
             default: return SDL_FALSE;
