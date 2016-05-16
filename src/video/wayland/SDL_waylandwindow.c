@@ -229,29 +229,6 @@ int Wayland_CreateWindow(_THIS, SDL_Window *window)
         wl_compositor_create_surface(c->compositor);
     wl_surface_set_user_data(data->surface, data);
 
-    /* XDG shell */
-    if (c->xdgshell)
-    {
-        data->xdgsurface = xdg_shell_get_xdg_surface(c->xdgshell,data->surface);
-        xdg_surface_set_user_data(data->xdgsurface, data);
-        xdg_surface_add_listener(data->xdgsurface,
-                                 &_sdl_xdg_surface_listener, data);
-        fprintf(stderr,"%s:: %d, xdg_shell_get_xdg_surface %p\n",__FUNCTION__,__LINE__,data->xdgsurface);
-    }
-    else if (c->shell)
-    {
-        /* WL Shell */
-        data->shell_surface = wl_shell_get_shell_surface(c->shell,
-                                                         data->surface);
-        fprintf(stderr,"%s:: %d, wl_shell_get_shell_surface %p\n",__FUNCTION__,__LINE__,data->shell_surface);
-    }
-#ifdef SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH    
-    if (c->surface_extension) {
-        data->extended_surface = qt_surface_extension_get_extended_surface(
-                c->surface_extension, data->surface);
-    }
-#endif /* SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH */
-
     data->egl_window = WAYLAND_wl_egl_window_create(data->surface,
                                             window->w, window->h);
 
@@ -280,6 +257,29 @@ int Wayland_CreateWindow(_THIS, SDL_Window *window)
     wl_region_add(region, 0, 0, window->w, window->h);
     wl_surface_set_opaque_region(data->surface, region);
     wl_region_destroy(region);
+
+    /* XDG shell */
+    if (c->xdgshell)
+    {
+        data->xdgsurface = xdg_shell_get_xdg_surface(c->xdgshell,data->surface);
+        xdg_surface_set_user_data(data->xdgsurface, data);
+        xdg_surface_add_listener(data->xdgsurface,
+                                 &_sdl_xdg_surface_listener, data);
+    }
+    else if (c->shell)
+    {
+        /* WL Shell */
+        data->shell_surface = wl_shell_get_shell_surface(c->shell,
+                                                         data->surface);
+    }
+#ifdef SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
+    if (c->surface_extension) {
+        data->extended_surface = qt_surface_extension_get_extended_surface(
+                c->surface_extension, data->surface);
+    }
+#endif /* SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH */
+
+
 
     WAYLAND_wl_display_flush(c->display);
 

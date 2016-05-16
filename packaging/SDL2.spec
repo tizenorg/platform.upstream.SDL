@@ -38,7 +38,6 @@ BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(freetype2)
 BuildRequires:  pkgconfig(fontconfig)
 BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  pkgconfig(sm)
 BuildRequires:  binutils-devel
 BuildRequires:  which
 BuildRequires:  autoconf
@@ -90,6 +89,7 @@ make install prefix=$RPM_BUILD_ROOT%{prefix} \
 rm -rf $RPM_BUILD_ROOT
 
 %files
+%manifest packaging/SDL2.manifest
 %{__defattr}
 #%doc README*.txt COPYING.txt CREDITS.txt BUGS.txt
 %{_libdir}/lib*.%{__soext}.*
