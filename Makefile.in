@@ -107,7 +107,8 @@ HDRS = \
 	SDL_version.h \
 	SDL_video.h \
 	begin_code.h \
-	close_code.h
+	close_code.h \
+	dlog.h
 
 SDLTEST_HDRS = $(shell ls $(srcdir)/include | fgrep SDL_test)
 
@@ -115,7 +116,7 @@ LT_AGE      = @LT_AGE@
 LT_CURRENT  = @LT_CURRENT@
 LT_RELEASE  = @LT_RELEASE@
 LT_REVISION = @LT_REVISION@
-LT_LDFLAGS  = -no-undefined -rpath $(DESTDIR)$(libdir) -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
+LT_LDFLAGS  = -no-undefined -rpath $(DESTDIR)$(libdir) -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) -ldlog
 
 all: $(srcdir)/configure Makefile $(objects) $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET) $(objects)/$(SDLTEST_TARGET)
 

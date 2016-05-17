@@ -38,6 +38,7 @@ BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(freetype2)
 BuildRequires:  pkgconfig(fontconfig)
 BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  pkgconfig(dlog)
 BuildRequires:  binutils-devel
 BuildRequires:  which
 BuildRequires:  autoconf
