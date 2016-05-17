@@ -37,6 +37,11 @@
 #include <android/log.h>
 #endif
 
+#if defined(__TIZEN__)
+#include <dlog/dlog.h>
+#define LOG_TAG "SDL_LOG"
+#endif
+
 #define DEFAULT_PRIORITY                SDL_LOG_PRIORITY_CRITICAL
 #define DEFAULT_ASSERT_PRIORITY         SDL_LOG_PRIORITY_WARN
 #define DEFAULT_APPLICATION_PRIORITY    SDL_LOG_PRIORITY_INFO
@@ -71,6 +76,18 @@ static const char *SDL_priority_prefixes[SDL_NUM_LOG_PRIORITIES] = {
     "ERROR",
     "CRITICAL"
 };
+
+#if defined(__TIZEN__)
+static const int SDL_dlog_debug_priority[SDL_NUM_LOG_PRIORITIES] = {
+    NULL,
+    DLOG_VERBOSE,
+    DLOG_DEBUG,
+    DLOG_INFO,
+    DLOG_WARN,
+    DLOG_ERROR,
+    DLOG_FATAL
+};
+#endif
 
 #ifdef __ANDROID__
 static const char *SDL_category_prefixes[SDL_LOG_CATEGORY_RESERVED1] = {
@@ -312,6 +329,21 @@ static int consoleAttached = 0;
 static HANDLE stderrHandle = NULL;
 #endif
 
+#if defined(__TIZEN__)
+static void
+SDL_PrintDlog(int priority, char *format, ...)
+{
+    va_list ap;
+
+    if (priority >= SDL_NUM_LOG_PRIORITIES)
+        return;
+
+    va_start(ap, format);
+    dlog_vprint(SDL_dlog_debug_priority[priority], LOG_TAG, format, ap);
+    va_end(ap);
+}
+#endif
+
 static void
 SDL_LogOutput(void *userdata, int category, SDL_LogPriority priority,
               const char *message)
@@ -412,7 +444,11 @@ SDL_LogOutput(void *userdata, int category, SDL_LogPriority priority,
     }
 #endif
 #if HAVE_STDIO_H
+#if defined(__TIZEN__)
+    SDL_PrintDlog(priority, "%s: %s", SDL_priority_prefixes[priority], message);
+#else
     fprintf(stderr, "%s: %s\n", SDL_priority_prefixes[priority], message);
+#endif
 #if __NACL__
     fflush(stderr);
 #endif
