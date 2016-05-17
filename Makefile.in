@@ -14,6 +14,7 @@ auxdir	= @ac_aux_dir@
 distpath = $(srcdir)/..
 distdir = SDL2-@SDL_VERSION@
 distfile = $(distdir).tar.gz
+__TIZEN__ = 1
 
 @SET_MAKE@
 SHELL	= @SHELL@
@@ -109,6 +110,7 @@ HDRS = \
 	begin_code.h \
 	close_code.h
 
+
 SDLTEST_HDRS = $(shell ls $(srcdir)/include | fgrep SDL_test)
 
 LT_AGE      = @LT_AGE@
@@ -117,7 +119,13 @@ LT_RELEASE  = @LT_RELEASE@
 LT_REVISION = @LT_REVISION@
 LT_LDFLAGS  = -no-undefined -rpath $(DESTDIR)$(libdir) -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
+ifdef __TIZEN__
+HDRS +=	dlog.h
+LT_LDFLAGS  += -ldlog
+endif
+
 all: $(srcdir)/configure Makefile $(objects) $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET) $(objects)/$(SDLTEST_TARGET)
+
 
 $(srcdir)/configure: $(srcdir)/configure.in
 	@echo "Warning, configure.in is out of date"
