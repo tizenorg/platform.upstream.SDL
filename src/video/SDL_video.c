@@ -108,6 +108,9 @@ static VideoBootStrap *bootstrap[] = {
 #if SDL_VIDEO_DRIVER_DUMMY
     &DUMMY_bootstrap,
 #endif
+#if SDL_VIDEO_DRIVER_TIZEN
+    &TIZEN_bootstrap,
+#endif
     NULL
 };
 
@@ -465,14 +468,18 @@ SDL_VideoInit(const char *driver_name)
         return -1;
     }
 
-    /* For Tizen */
-    driver_name = "wayland";
     /* Select the proper video driver */
     index = 0;
     video = NULL;
     if (driver_name == NULL) {
         driver_name = SDL_getenv("SDL_VIDEODRIVER");
     }
+
+    /* For Tizen */
+	if (driver_name == NULL) {
+        driver_name = "tizen";
+    }
+
     if (driver_name != NULL) {
         for (i = 0; bootstrap[i]; ++i) {
             if (SDL_strncasecmp(bootstrap[i]->name, driver_name, SDL_strlen(driver_name)) == 0) {
