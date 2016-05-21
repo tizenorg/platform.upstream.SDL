@@ -120,7 +120,8 @@ typedef enum
     SDL_SYSWM_WAYLAND,
     SDL_SYSWM_MIR,
     SDL_SYSWM_WINRT,
-    SDL_SYSWM_ANDROID
+    SDL_SYSWM_ANDROID,
+    SDL_SYSWM_TIZEN
 } SDL_SYSWM_TYPE;
 
 /**
@@ -235,7 +236,7 @@ struct SDL_SysWMinfo
             GLuint resolveFramebuffer; /* The Framebuffer Object which holds the resolve color Renderbuffer, when MSAA is used. */
         } uikit;
 #endif
-#if defined(SDL_VIDEO_DRIVER_WAYLAND)
+#if defined(SDL_VIDEO_DRIVER_WAYLAND) || defined(SDL_VIDEO_DRIVER_TIZEN)
         struct
         {
             struct wl_display *display;            /**< Wayland display */

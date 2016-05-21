@@ -42,6 +42,11 @@ BuildRequires:  binutils-devel
 BuildRequires:  which
 BuildRequires:  autoconf
 
+BuildRequires:  pkgconfig(ecore)
+BuildRequires:  pkgconfig(evas)
+BuildRequires:  pkgconfig(ecore-wayland)
+BuildRequires:  pkgconfig(appcore-efl)
+
 %description
 This is the Simple DirectMedia Layer, a generic API that provides low
 level access to audio, keyboard, mouse, and display framebuffer across
@@ -65,12 +70,14 @@ to develop SDL applications.
 %setup -q 
 
 %build
-%ifos linux
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix} --disable-video-directfb --enable-video-wayland
-%else
-%configure
-%endif
-make
+
+%autogen
+./configure \
+	--prefix=%{prefix} \
+	--disable-video-directfb \
+	--disable-video-wayland \
+	--enable-video-tizen
+make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
