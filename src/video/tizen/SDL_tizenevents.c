@@ -43,6 +43,33 @@ Tizen_PumpEvents(_THIS)
     ecore_main_loop_iterate();
 }
 
+Eina_Bool
+__tizen_cb_event_keyup_change(void *data, int type, void *event)
+{
+    printf("SAMPLE EV :key up\n");
+
+    if (!event) return ECORE_CALLBACK_PASS_ON;
+
+    Ecore_Event_Key * e = event;
+    SDL_SendKeyboardKey(SDL_RELEASED, e->keycode);
+
+    return ECORE_CALLBACK_PASS_ON;
+}
+
+Eina_Bool
+__tizen_cb_event_keydown_change(void *data, int type, void *event)
+{
+    printf("SAMPLE EV :key down\n");
+
+    if (!event) return ECORE_CALLBACK_PASS_ON;
+
+    Ecore_Event_Key * e = event;
+    SDL_SendKeyboardKey(SDL_PRESSED, e->keycode);
+
+    return ECORE_CALLBACK_PASS_ON;
+}
+
+
 #endif /* SDL_VIDEO_DRIVER_TIZEN */
 
 /* vi: set ts=4 sw=4 expandtab: */

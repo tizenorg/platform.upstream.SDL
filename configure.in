@@ -1269,9 +1269,9 @@ CheckTizen()
         if  test x$PKG_CONFIG != xno && \
             test x$video_opengl_egl = xyes && \
             test x$video_opengles_v2 = xyes; then
-            if $PKG_CONFIG --exists wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl; then
-                TIZEN_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl`
-                TIZEN_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl`
+            if $PKG_CONFIG --exists wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input; then
+                TIZEN_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input`
+                TIZEN_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input`
                 video_tizen=yes
             fi
         fi
