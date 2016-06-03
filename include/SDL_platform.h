@@ -65,6 +65,10 @@
 #undef __LINUX__ /* do we need to do this? */
 #define __ANDROID__ 1
 #endif
+#if defined(TIZEN) || defined(__TIZEN__)
+#undef __TIZEN__
+#define __TIZEN__ 1
+#endif
 
 #if defined(__APPLE__)
 /* lets us know what version of Mac OS X we're compiling on */

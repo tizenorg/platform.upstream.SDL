@@ -38,10 +38,15 @@ BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(freetype2)
 BuildRequires:  pkgconfig(fontconfig)
 BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  pkgconfig(dlog)
 BuildRequires:  binutils-devel
 BuildRequires:  which
 BuildRequires:  autoconf
+
+BuildRequires:  pkgconfig(ecore)
+BuildRequires:  pkgconfig(evas)
+BuildRequires:  pkgconfig(ecore-wayland)
+BuildRequires:  pkgconfig(appcore-efl)
+BuildRequires:  pkgconfig(dlog)
 
 %description
 This is the Simple DirectMedia Layer, a generic API that provides low
