@@ -592,6 +592,53 @@ macro(CheckWayland)
   endif()
 endmacro()
 
+macro(CheckTizen)
+  if(VIDEO_TIZEN)
+    pkg_check_modules(TIZEN wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl dlog)
+    if(TIZEN_FOUND)
+      link_directories(
+          ${TIZEN_LIBRARY_DIRS}
+      )
+      include_directories(
+          ${TIZEN_INCLUDE_DIRS}
+      )
+      set(HAVE_VIDEO_TIZEN TRUE)
+      set(HAVE_SDL_VIDEO TRUE)
+
+      file(GLOB TIZEN_SOURCES ${SDL2_SOURCE_DIR}/src/video/tizen/*.c)
+      set(SOURCE_FILES ${SOURCE_FILES} ${TIZEN_SOURCES})
+
+      if(TIZEN_SHARED)
+        if(NOT HAVE_DLOPEN)
+          message_warn("You must have SDL_LoadObject() support for dynamic Tizen loading")
+        else()
+          FindLibraryAndSONAME(wayland-client)
+          FindLibraryAndSONAME(wayland-egl)
+          FindLibraryAndSONAME(ecore)
+          FindLibraryAndSONAME(ecore-wayland)
+          FindLibraryAndSONAME(evas)
+          FindLibraryAndSONAME(eina)
+          FindLibraryAndSONAME(appcore-efl)
+          FindLibraryAndSONAME(dlog)
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC "\"${WAYLAND_CLIENT_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_EGL "\"${WAYLAND_EGL_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_ECORE "\"${ECORE_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_ECORE_WAYLAND "\"${ECORE_WAYLAND_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_EVAS "\"${EVAS_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_EINA "\"${EINA_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_APPCORE_EFL "\"${APPCORE_EFL_LIB_SONAME}\"")
+          set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_DLOG "\"${DLOG_LIB_SONAME}\"")
+          set(HAVE_TIZEN_SHARED TRUE)
+        endif()
+      else()
+        set(EXTRA_LIBS ${TIZEN_LIBRARIES} ${EXTRA_LIBS})
+      endif()
+
+      set(SDL_VIDEO_DRIVER_TIZEN 1)
+    endif()
+  endif()
+endmacro()
+
 # Requires:
 # - n/a
 #

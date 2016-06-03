@@ -76,6 +76,12 @@
 */
 #define SDL_MAIN_NEEDED
 
+#elif defined(__TIZEN__)
+/* On Tizen SDL provides tizen backend and port for tizen device.
+
+ */
+#define SDL_MAIN_NEEDED
+
 #endif
 #endif /* SDL_MAIN_HANDLED */
 
