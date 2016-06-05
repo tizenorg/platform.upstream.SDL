@@ -1280,6 +1280,7 @@ CheckTizen()
         if test x$video_tizen = xyes; then
             AC_DEFINE(SDL_VIDEO_DRIVER_TIZEN, 1, [ ])
             SOURCES="$SOURCES $srcdir/src/video/tizen/*.c"
+            SOURCES="$SOURCES $srcdir/src/core/tizen/*.c"
 
             SDLMAIN_SOURCES="$srcdir/src/main/tizen/*.c"
             EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS -DTIZEN"

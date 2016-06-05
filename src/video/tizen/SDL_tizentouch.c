@@ -3,8 +3,6 @@
   Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
   Copyright 2015 Samsung Electronics co., Ltd. All Rights Reserved.
 
-  Contact: Sangjin Lee <lsj119@samsung.com>
-
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
   arising from the use of this software.

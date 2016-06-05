@@ -3,8 +3,6 @@
   Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
   Copyright 2015 Samsung Electronics co., Ltd. All Rights Reserved.
 
-  Contact: Sangjin Lee <lsj119@samsung.com>
-
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
   arising from the use of this software.
@@ -30,6 +28,7 @@
 #include "SDL_mouse.h"
 #include "SDL_stdinc.h"
 #include "../../events/SDL_events_c.h"
+#include "../../core/tizen/SDL_tizen.h"
 
 #include "SDL_tizenvideo.h"
 #include "SDL_tizenevents_c.h"
@@ -51,41 +50,6 @@ Tizen_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode);
 
 static void
 Tizen_VideoQuit(_THIS);
-
-static int
-__tizen_app_create(void *data)
-{
-    printf("%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
-}
-
-static int
-__tizen_app_terminate(void *data)
-{
-    printf("%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
-}
-
-static int
-__tizen_app_pause (void *data)
-{
-    printf("%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
-}
-
-static int
-__tizen_app_resume(void *data)
-{
-    printf("%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
-}
-
-static int
-__tizen_app_reset(bundle *bun, void *data)
-{
-    printf("%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
-}
 
 static void
 __tizen_add_display(SDL_VideoData *d, uint32_t id)
@@ -172,26 +136,9 @@ VideoBootStrap TIZEN_bootstrap = {
     Tizen_Available, Tizen_CreateDevice
 };
 
-static int _argc = 1;
-static char *_argv[] = {
-    "tizen_sdl_app",
-    NULL,
-};
-
-static struct appcore_ops _ops = {
-    .create         = __tizen_app_create,
-    .terminate      = __tizen_app_terminate,
-    .pause          = __tizen_app_pause,
-    .resume         = __tizen_app_resume,
-    .reset          = __tizen_app_reset,
-};
-
 int
 Tizen_VideoInit(_THIS)
 {
-    int *argc;
-    char **argv;
-
     TRACE_ENTER();
     SDL_VideoData *data = SDL_malloc(sizeof * data);
 
@@ -205,11 +152,6 @@ Tizen_VideoInit(_THIS)
     __tizen_add_display(data, 0);
 
     Tizen_InitWindow(_this);
-
-    _ops.data = _this;
-    argc = &_argc;
-    argv = _argv;
-    appcore_efl_init(_argv[0], argc, &argv, &_ops);
     return 0;
 }
 
@@ -233,7 +175,7 @@ Tizen_VideoQuit(_THIS)
     SDL_VideoData *data = _this->driverdata;
 
     Tizen_DeinitWindow(_this);
-    appcore_efl_fini();
+    SDL_tizen_app_exit();
     ecore_wl_shutdown();
     free(data);
 

@@ -8,6 +8,7 @@
 #include "SDL_main.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "../../core/tizen/SDL_tizen.h"
 
 #ifdef main
 #undef main
@@ -15,6 +16,7 @@
 int main(int argc, char *argv[])
 {
     printf("Start MAIN!!!!!!\n");
+    SDL_tizen_app_init(argc, argv);
     SDL_SetMainReady();
     (void)SDL_main(argc, argv);
     return 0;

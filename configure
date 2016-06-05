@@ -18955,6 +18955,7 @@ $as_echo "$video_tizen" >&6; }
 $as_echo "#define SDL_VIDEO_DRIVER_TIZEN 1" >>confdefs.h
 
             SOURCES="$SOURCES $srcdir/src/video/tizen/*.c"
+            SOURCES="$SOURCES $srcdir/src/core/tizen/*.c"
 
             SDLMAIN_SOURCES="$srcdir/src/main/tizen/*.c"
             EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS -DTIZEN"

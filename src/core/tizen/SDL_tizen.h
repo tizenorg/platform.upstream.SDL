@@ -22,26 +22,12 @@
 
 #include "../../SDL_internal.h"
 
-#ifndef _SDL_tizenvideo_h
-#define _SDL_tizenvideo_h
+#ifndef _SDL_tizen_h
+#define _SDL_tizen_h
 
-#include <EGL/egl.h>
-#include <Ecore_Wayland.h>
-
-typedef struct {
-    EGLDisplay edpy;
-    EGLContext context;
-    EGLConfig econf;
-
-    Eina_Hash *windows;
-} SDL_VideoData;
-
-#ifdef ENABLE_DEBUG
-#define TRACE_ENTER() printf("[SDL] %s:%d\n", __FUNCTION__, __LINE__)
-#else
-#define TRACE_ENTER()
+#if __TIZEN__
+int  SDL_tizen_app_init(int argc, char *argv[]);
+void SDL_tizen_app_exit(void);
 #endif
 
-#endif /* _SDL_tizenvideo_h */
-
-/* vi: set ts=4 sw=4 expandtab: */
+#endif /* _SDL_tizen_h */
