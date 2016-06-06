@@ -156,6 +156,12 @@ extern DECLSPEC int SDLCALL SDL_WinRTRunApp(int (*mainFunction)(int, char **), v
 
 #endif /* __WINRT__ */
 
+#ifdef __TIZEN__
+
+extern DECLSPEC int SDLCALL SDL_tizen_app_init(int argc, char *argv[]);
+
+#endif /* __TIZEN__ */
+
 
 #ifdef __cplusplus
 }

@@ -4,15 +4,16 @@
 #include "SDL_config.h"
 
 #ifdef __TIZEN__
-
-#include "SDL_main.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "../../core/tizen/SDL_tizen.h"
+#include "SDL.h"
+#include "SDL_main.h"
+//#include "../../core/tizen/SDL_tizen.h"
 
 #ifdef main
 #undef main
 #endif
+
 int main(int argc, char *argv[])
 {
     printf("Start MAIN!!!!!!\n");
