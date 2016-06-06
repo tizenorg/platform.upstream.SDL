@@ -21,4 +21,50 @@
 */
 
 #include "../../SDL_internal.h"
+#include "SDL_tizenmouse.h"
+
+
+Eina_Bool
+__tizen_cb_event_mousedown_change(void *data, int type, void *event)
+{
+    SDL_VideoDevice *_this = SDL_GetVideoDevice();
+
+    printf("SAMPLE EV :mouse down\n");
+    if (!event) return ECORE_CALLBACK_PASS_ON;
+
+    Ecore_Event_Mouse_Button *e = event;
+    SDL_SendMouseMotion(_this->current_glwin, 0, 0,  e->x, e->y);
+    SDL_SendMouseButton(_this->current_glwin, 0, SDL_PRESSED, SDL_BUTTON_LEFT);
+    return ECORE_CALLBACK_PASS_ON;
+}
+
+Eina_Bool
+__tizen_cb_event_mouseup_change(void *data, int type, void *event)
+{
+    SDL_VideoDevice *_this = SDL_GetVideoDevice();
+    printf("TIZEN EV :mouse up\n");
+    if (!event) return ECORE_CALLBACK_PASS_ON;
+
+    Ecore_Event_Mouse_Button *e = event;
+    SDL_SendMouseMotion(_this->current_glwin, 0, 0,  e->x, e->y);
+    SDL_SendMouseButton(_this->current_glwin, 0, SDL_RELEASED, SDL_BUTTON_LEFT);
+    return ECORE_CALLBACK_PASS_ON;
+}
+
+Eina_Bool
+__tizen_cb_event_mousemove_change(void *data, int type, void *event)
+{
+    SDL_VideoDevice *_this = SDL_GetVideoDevice();
+    printf("TIZEN  : mousemove\n");
+
+    if (!event) return ECORE_CALLBACK_PASS_ON;
+
+    Ecore_Event_Mouse_Move *e = event;
+    SDL_SendMouseMotion(_this->current_glwin, 0, 0,  e->x, e->y);
+
+    return ECORE_CALLBACK_PASS_ON;
+}
+
+
+
 

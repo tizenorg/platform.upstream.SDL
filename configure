@@ -18941,9 +18941,9 @@ $as_echo_n "checking for Tizen support... " >&6; }
         if  test x$PKG_CONFIG != xno && \
             test x$video_opengl_egl = xyes && \
             test x$video_opengles_v2 = xyes; then
-            if $PKG_CONFIG --exists wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl dlog; then
-                TIZEN_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl dlog`
-                TIZEN_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl dlog`
+            if $PKG_CONFIG --exists wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input dlog; then
+                TIZEN_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input dlog`
+                TIZEN_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input dlog`
                 video_tizen=yes
             fi
         fi

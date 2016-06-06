@@ -30,6 +30,12 @@
 
 extern void Tizen_PumpEvents(_THIS);
 
+
+extern Eina_Bool __tizen_cb_event_keyup_change(void *data, int type, void *event);
+
+extern Eina_Bool __tizen_cb_event_keydown_change(void *data, int type, void *event);
+
+
 #endif /* _SDL_tizenevents_h */
 
 /* vi: set ts=4 sw=4 expandtab: */

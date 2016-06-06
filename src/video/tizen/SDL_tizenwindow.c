@@ -31,6 +31,9 @@
 #include "SDL_tizenvideo.h"
 #include "SDL_tizentouch.h"
 
+#include "SDL_tizenmouse.h"
+#include "SDL_tizenevents_c.h"
+
 #include <wayland-egl.h>
 
 SDL_bool
@@ -174,6 +177,17 @@ Tizen_InitWindow(_THIS)
     
     ecore_event_handler_add(ECORE_WL_EVENT_WINDOW_VISIBILITY_CHANGE,
                         __tizen_cb_window_visibility_change, _this);
+    ecore_event_handler_add(ECORE_EVENT_KEY_UP,
+                        __tizen_cb_event_keyup_change,  NULL);
+    ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
+                        __tizen_cb_event_keydown_change,	NULL);
+
+    ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN,
+                        __tizen_cb_event_mousedown_change,	_this);
+    ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_UP,
+                        __tizen_cb_event_mouseup_change,	_this);
+    ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE,
+                        __tizen_cb_event_mousemove_change,	_this);
 
     return 0;
 }
