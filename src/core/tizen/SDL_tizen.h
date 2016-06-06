@@ -26,7 +26,6 @@
 #define _SDL_tizen_h
 
 #if __TIZEN__
-int  SDL_tizen_app_init(int argc, char *argv[]);
 void SDL_tizen_app_exit(void);
 #endif
 

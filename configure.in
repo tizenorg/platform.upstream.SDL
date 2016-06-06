@@ -1283,6 +1283,8 @@ CheckTizen()
             SOURCES="$SOURCES $srcdir/src/core/tizen/*.c"
 
             SDLMAIN_SOURCES="$srcdir/src/main/tizen/*.c"
+            SDL_CFLAGS="$SDL_CFLAGS -Dmain=SDL_main"
+            SDL_LIBS="$SDL_LIBS -lSDL2main"
             EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS -DTIZEN"
 
             EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS"
