@@ -1269,9 +1269,9 @@ CheckTizen()
         if  test x$PKG_CONFIG != xno && \
             test x$video_opengl_egl = xyes && \
             test x$video_opengles_v2 = xyes; then
-            if $PKG_CONFIG --exists wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input dlog; then
-                TIZEN_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input dlog`
-                TIZEN_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl ecore-input dlog`
+            if $PKG_CONFIG --exists wayland-client wayland-egl ecore ecore-wayland evas eina capi-appfw-application capi-system-system-settings ecore-input dlog; then
+                TIZEN_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-egl ecore ecore-wayland evas eina capi-appfw-application capi-system-system-settings ecore-input dlog`
+                TIZEN_LIBS=`$PKG_CONFIG --libs wayland-client wayland-egl ecore ecore-wayland evas eina capi-appfw-application capi-system-system-settings ecore-input dlog`
                 video_tizen=yes
             fi
         fi
@@ -1281,11 +1281,12 @@ CheckTizen()
             AC_DEFINE(SDL_VIDEO_DRIVER_TIZEN, 1, [ ])
             SOURCES="$SOURCES $srcdir/src/video/tizen/*.c"
             SOURCES="$SOURCES $srcdir/src/core/tizen/*.c"
-
             SDLMAIN_SOURCES="$srcdir/src/main/tizen/*.c"
-            EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS -DTIZEN"
 
-            EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS"
+            SDL_CFLAGS="$SDL_CFLAGS -Dmain=SDL_main"
+            SDL_LIBS="-lSDL2main $SDL_LIBS"
+
+            EXTRA_CFLAGS="$EXTRA_CFLAGS $TIZEN_CFLAGS -DTIZEN"
             EXTRA_LDFLAGS="$EXTRA_LDFLAGS $TIZEN_LIBS"
             SUMMARY_video="${SUMMARY_video} tizen"
             have_video=yes

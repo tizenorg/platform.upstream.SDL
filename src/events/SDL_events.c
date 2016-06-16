@@ -395,7 +395,6 @@ void
 SDL_PumpEvents(void)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
-
     /* Get events from the video subsystem */
     if (_this) {
         _this->PumpEvents(_this);
@@ -406,7 +405,6 @@ SDL_PumpEvents(void)
         SDL_JoystickUpdate();
     }
 #endif
-
     SDL_SendPendingQuit();  /* in case we had a signal handler fire, etc. */
 }
 
@@ -431,7 +429,6 @@ SDL_WaitEventTimeout(SDL_Event * event, int timeout)
 
     if (timeout > 0)
         expiration = SDL_GetTicks() + timeout;
-
     for (;;) {
         SDL_PumpEvents();
         switch (SDL_PeepEvents(event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {

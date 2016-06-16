@@ -34,6 +34,7 @@
 #include "SDL_tizenvideo.h"
 #include "SDL_tizenevents_c.h"
 #include "SDL_tizenwindow.h"
+#include "SDL_log.h"
 
 void
 Tizen_PumpEvents(_THIS)
@@ -44,11 +45,10 @@ Tizen_PumpEvents(_THIS)
 Eina_Bool
 __tizen_cb_event_keyup_change(void *data, int type, void *event)
 {
-    printf("SAMPLE EV :key up\n");
-
     if (!event) return ECORE_CALLBACK_PASS_ON;
 
     Ecore_Event_Key * e = event;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "key up: %d",e->keycode);
     SDL_SendKeyboardKey(SDL_RELEASED, e->keycode);
 
     return ECORE_CALLBACK_PASS_ON;
@@ -57,11 +57,10 @@ __tizen_cb_event_keyup_change(void *data, int type, void *event)
 Eina_Bool
 __tizen_cb_event_keydown_change(void *data, int type, void *event)
 {
-    printf("SAMPLE EV :key down\n");
-
     if (!event) return ECORE_CALLBACK_PASS_ON;
 
     Ecore_Event_Key * e = event;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "key down: %d",e->keycode);
     SDL_SendKeyboardKey(SDL_PRESSED, e->keycode);
 
     return ECORE_CALLBACK_PASS_ON;

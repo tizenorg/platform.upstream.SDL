@@ -45,7 +45,8 @@ BuildRequires:  autoconf
 BuildRequires:  pkgconfig(ecore)
 BuildRequires:  pkgconfig(evas)
 BuildRequires:  pkgconfig(ecore-wayland)
-BuildRequires:  pkgconfig(appcore-efl)
+BuildRequires:  pkgconfig(capi-appfw-application)
+BuildRequires:  pkgconfig(capi-system-system-settings)
 BuildRequires:  pkgconfig(dlog)
 
 %description

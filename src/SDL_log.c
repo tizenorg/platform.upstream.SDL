@@ -39,7 +39,11 @@
 
 #if defined(__TIZEN__)
 #include <dlog/dlog.h>
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
 #define LOG_TAG "SDL_LOG"
+#define _SECURE_LOG
 #endif
 
 #define DEFAULT_PRIORITY                SDL_LOG_PRIORITY_CRITICAL
@@ -442,16 +446,16 @@ SDL_LogOutput(void *userdata, int category, SDL_LogPriority priority,
         fprintf(pFile, "%s: %s\n", SDL_priority_prefixes[priority], message);
         fclose (pFile);
     }
+#elif defined(__TIZEN__)
+    {
+        SDL_PrintDlog(priority, "%s: %s", SDL_priority_prefixes[priority], message);
+    }
 #endif
 #if HAVE_STDIO_H
-#if defined(__TIZEN__)
-    SDL_PrintDlog(priority, "%s: %s", SDL_priority_prefixes[priority], message);
-#else
     fprintf(stderr, "%s: %s\n", SDL_priority_prefixes[priority], message);
 #endif
 #if __NACL__
     fflush(stderr);
-#endif
 #endif
 }
 
