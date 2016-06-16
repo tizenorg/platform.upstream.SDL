@@ -33,6 +33,7 @@
 
 #include "SDL_tizenmouse.h"
 #include "SDL_tizenevents_c.h"
+#include "SDL_log.h"
 
 #include <wayland-egl.h>
 
@@ -162,8 +163,11 @@ __tizen_cb_window_visibility_change(void *data, int type, void *event)
     ew = ecore_wl_window_find(ev->win);
     window = __tizen_find_window(_this, ew);
 
-    printf("SAMPLE EV : visibility window:%p, ecore_wl_window:%p\n", window, ew);
-    
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "visibility window: %p, ecore_wl_window: %p\n", window, ew);
+
+    SDL_SendWindowEvent(window, SDL_WINDOWEVENT_SHOWN, 0, 0);
+    SDL_SendWindowEvent(window, SDL_WINDOWEVENT_RESTORED, 0, 0);
+
     return ECORE_CALLBACK_PASS_ON;
 }
 

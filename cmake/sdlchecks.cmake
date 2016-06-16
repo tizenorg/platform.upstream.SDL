@@ -594,7 +594,7 @@ endmacro()
 
 macro(CheckTizen)
   if(VIDEO_TIZEN)
-    pkg_check_modules(TIZEN wayland-client wayland-egl ecore ecore-wayland evas eina appcore-efl dlog)
+    pkg_check_modules(TIZEN wayland-client wayland-egl ecore ecore-wayland evas eina capi-appfw-application capi-appfw-application dlog)
     if(TIZEN_FOUND)
       link_directories(
           ${TIZEN_LIBRARY_DIRS}
@@ -618,7 +618,8 @@ macro(CheckTizen)
           FindLibraryAndSONAME(ecore-wayland)
           FindLibraryAndSONAME(evas)
           FindLibraryAndSONAME(eina)
-          FindLibraryAndSONAME(appcore-efl)
+          FindLibraryAndSONAME(capi-appfw-application)
+          FindLibraryAndSONAME(capi-system-system-settings)
           FindLibraryAndSONAME(dlog)
           set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC "\"${WAYLAND_CLIENT_LIB_SONAME}\"")
           set(SDL_VIDEO_DRIVER_TIZEN_DYNAMIC_EGL "\"${WAYLAND_EGL_LIB_SONAME}\"")

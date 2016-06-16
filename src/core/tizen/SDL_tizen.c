@@ -24,118 +24,137 @@
 
 #if __TIZEN__
 #include "SDL_tizen.h"
-#include <appcore-efl.h>
+#include "SDL_log.h"
+#include "SDL_events.h"
+#include <app_internal.h>
+#include <app_extension.h>
+#include <system_settings.h>
 
-typedef enum {
-    APP_STATE_NOT_RUNNING,
-    APP_STATE_CREATING,
-    APP_STATE_RUNNING,
-} app_state_e;
-
-struct ui_app_context {
-    char *package;
-    char *app_name;
-    app_state_e state;
-    void *callback;
-    void *data;
-};
+static int tizen_appcore_initialized = 0;
+static appcore_context_h appcore_handle = NULL;
+static ui_app_lifecycle_callback_s event_callback = {0,};
+static app_event_handler_h handlers[5] = {NULL, };
 
 /* TODO  ::
  * Impplementation of serveral app core callback function for SDL Application and App Core
  * */
 
-static int
-_tizen_app_create(void *data)
+static bool
+_tizen_sdl_create(void *data)
 {
-    fprintf(stderr,"%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "SDL_AppCore CreateCB");
+    return true;
 }
 
-static int
-_tizen_app_terminate(void *data)
+static void
+_tizen_sdl_terminate(void *data)
 {
-    fprintf(stderr,"%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "SDL_AppCore TermincateCB");
+    SDL_SendQuit();
+    SDL_SendAppEvent(SDL_APP_TERMINATING);
+    return;
 }
 
-static int
-_tizen_app_pause (void *data)
+static void
+_tizen_sdl_pause (void *data)
 {
-    fprintf(stderr,"%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "SDL_AppCore PauseCB");
+    SDL_SendAppEvent(SDL_APP_WILLENTERBACKGROUND);
+    SDL_SendAppEvent(SDL_APP_DIDENTERBACKGROUND);
+    return;
 }
 
-static int
-_tizen_app_resume(void *data)
+static void
+_tizen_sdl_resume(void *data)
 {
-    fprintf(stderr,"%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "SDL_AppCore ResumeCB");
+    SDL_SendAppEvent(SDL_APP_WILLENTERFOREGROUND);
+    SDL_SendAppEvent(SDL_APP_DIDENTERFOREGROUND);
+    return;
 }
 
-static int
-_tizen_app_reset(bundle *bun, void *data)
+static void
+_tizen_sdl_control(app_control_h app_control, void *data)
 {
-    fprintf(stderr,"%s:%d\n",__FUNCTION__, __LINE__);
-    return 0;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "SDL_AppCore ControlCB");
+    return;
+}
+
+static void
+_tizen_app_lang_changed(app_event_info_h event_info, void *user_data)
+{
+    /*APP_EVENT_LANGUAGE_CHANGED*/
+    char *locale = NULL;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Language changedCB");
+    system_settings_get_value_string(SYSTEM_SETTINGS_KEY_LOCALE_LANGUAGE, &locale);
+    free(locale);
+    return;
+}
+
+static void
+_tizen_app_orient_changed(app_event_info_h event_info, void *user_data)
+{
+    /*APP_EVENT_DEVICE_ORIENTATION_CHANGED*/
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "orient changedCB");
+    return;
+}
+
+static void
+_tizen_app_region_changed(app_event_info_h event_info, void *user_data)
+{
+    /*APP_EVENT_REGION_FORMAT_CHANGED*/
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "region changedCB");
+}
+
+static void
+_tizen_app_low_battery(app_event_info_h event_info, void *user_data)
+{
+    /*APP_EVENT_LOW_BATTERY*/
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "low battery CB");
+}
+
+static void
+_tizen_app_low_memory(app_event_info_h event_info, void *user_data)
+{
+    /*APP_EVENT_LOW_MEMORY*/
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "low memory CB");
+    SDL_SendAppEvent(SDL_APP_LOWMEMORY);
 }
 
 int
 SDL_tizen_app_init(int argc, char *argv[])
 {
-    struct ui_app_context app_context = {
-        .package = NULL,
-        .app_name = NULL,
-        .state = APP_STATE_NOT_RUNNING,
-        .callback = NULL,
-        .data = NULL,
-    };
-
-    struct appcore_ops appcore_context = {
-        .data = &app_context,
-        .create = _tizen_app_create,
-        .terminate = _tizen_app_terminate,
-        .pause = _tizen_app_pause,
-        .resume = _tizen_app_resume,
-        .reset = _tizen_app_reset,
-    };
-
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "SDL Tizen App initialize");
+    if (tizen_appcore_initialized)
+    {
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Already initialized!");
+        return 0;
+    }
+    tizen_appcore_initialized = 1;
     if (argc < 1 || argv == NULL)
     {
-        fprintf(stderr,"%s: APP_ERROR_INVALID_PARAMETER",__FUNCTION__);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "APP_ERROR_INVALID_PARAMETER");
         return 0;
     }
 
-    if (app_context.state != APP_STATE_NOT_RUNNING)
-    {
-        fprintf(stderr,"%s: APP_STATE_NOT_RUNNING\n",__FUNCTION__);
-        return 0;
-    }
+    event_callback.create = _tizen_sdl_create;
+    event_callback.terminate = _tizen_sdl_terminate;
+    event_callback.pause = _tizen_sdl_pause;
+    event_callback.resume = _tizen_sdl_resume;
+    event_callback.app_control = _tizen_sdl_control;
 
-    /* TODO  ::
-     * At first, check the necessary calling app_get_id()/app_get_package_app_name() while app_init.
-     * If necessary, help these functions can be export.
-     * After that, determine the implementation of them.
-     * */
-#if 0
-    if (app_get_id(&(app_context.package)) != 0)
-    {
-        fprintf(stderr,"%s: APP_ERROR_INVALID_CONTEXT",__FUNCTION__);
-        return 0;
-    }
+    ui_app_add_event_handler(&handlers[APP_EVENT_LOW_BATTERY], APP_EVENT_LOW_BATTERY, _tizen_app_low_battery, NULL);
+    ui_app_add_event_handler(&handlers[APP_EVENT_LOW_MEMORY], APP_EVENT_LOW_MEMORY, _tizen_app_low_memory, NULL);
+    ui_app_add_event_handler(&handlers[APP_EVENT_DEVICE_ORIENTATION_CHANGED], APP_EVENT_DEVICE_ORIENTATION_CHANGED, _tizen_app_orient_changed, NULL);
+    ui_app_add_event_handler(&handlers[APP_EVENT_LANGUAGE_CHANGED], APP_EVENT_LANGUAGE_CHANGED, _tizen_app_lang_changed, NULL);
+    ui_app_add_event_handler(&handlers[APP_EVENT_REGION_FORMAT_CHANGED], APP_EVENT_REGION_FORMAT_CHANGED, _tizen_app_region_changed, NULL);
 
-    if (app_get_package_app_name(app_context.package, &(app_context.app_name)) != 0)
-    {
-        free(app_context.package);
-        fprintf(stderr,"%s: APP_ERROR_INVALID_CONTEXT",__FUNCTION__);
-        return 0;
-    }
-#endif
-    return appcore_efl_init(app_context.app_name, &argc, &argv, &appcore_context);
+    return ui_app_init(argc, argv, &event_callback, NULL, &appcore_handle);
 }
 
 void
 SDL_tizen_app_exit(void)
 {
-    appcore_efl_fini();
+    ui_app_fini(appcore_handle);
 }
 #endif
