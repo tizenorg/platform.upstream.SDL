@@ -1,4 +1,4 @@
-/*
+ /*
   Simple DirectMedia Layer
   Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
   Copyright 2015 Samsung Electronics co., Ltd. All Rights Reserved.
@@ -18,7 +18,7 @@
   2. Altered source versions must be plainly marked as such, and must not be
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
-*/
+ */
 
 #include "../../SDL_internal.h"
 
@@ -36,6 +36,8 @@
 #include "SDL_tizenopengles.h"
 #include "SDL_tizenmouse.h"
 #include "SDL_tizentouch.h"
+#include "SDL_tizenkeyboard.h"
+
 
 #define TIZENVID_DRIVER_NAME "tizen"
 
@@ -126,7 +128,18 @@ Tizen_CreateDevice(int devindex)
     device->SetWindowSize = Tizen_SetWindowSize;
     device->DestroyWindow = Tizen_DestroyWindow;
     device->SetWindowHitTest = Tizen_SetWindowHitTest;
-    device->GetWindowWMInfo			= Tizen_GetWindowWMInfo;
+    device->GetWindowWMInfo = Tizen_GetWindowWMInfo;
+
+    /* Text input */
+    device->StartTextInput = Tizen_StartTextInput;
+    device->StopTextInput = Tizen_StopTextInput;
+    //device->SetTextInputRect = Tizen_SetTextInputRect;
+
+    /* Screen keyboard */
+    device->HasScreenKeyboardSupport = Tizen_HasScreenKeyboardSupport;
+    device->ShowScreenKeyboard = Tizen_ShowScreenKeyboard;
+    //device->HideScreenKeyboard = Tizen_HideScreenKeyboard;
+    device->IsScreenKeyboardShown = Tizen_IsScreenKeyboardShown;
 
     return device;
 }
@@ -175,6 +188,7 @@ Tizen_VideoQuit(_THIS)
     SDL_VideoData *data = _this->driverdata;
 
     Tizen_DeinitWindow(_this);
+    Tizen_FiniKeyboard();
     SDL_tizen_app_exit();
     ecore_wl_shutdown();
     free(data);
