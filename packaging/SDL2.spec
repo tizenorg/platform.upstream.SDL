@@ -48,6 +48,7 @@ BuildRequires:  pkgconfig(ecore-wayland)
 BuildRequires:  pkgconfig(capi-appfw-application)
 BuildRequires:  pkgconfig(capi-system-system-settings)
 BuildRequires:  pkgconfig(dlog)
+BuildRequires:  pkgconfig(ecore-imf)
 
 %description
 This is the Simple DirectMedia Layer, a generic API that provides low
