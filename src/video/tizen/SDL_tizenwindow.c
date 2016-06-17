@@ -30,6 +30,7 @@
 #include "SDL_tizenwindow.h"
 #include "SDL_tizenvideo.h"
 #include "SDL_tizentouch.h"
+#include "SDL_tizenkeyboard.h"
 
 #include "SDL_tizenmouse.h"
 #include "SDL_tizenevents_c.h"
@@ -108,6 +109,9 @@ Tizen_CreateWindow(_THIS, SDL_Window *window)
 
     wind->id = ecore_wl_window_id_get(wind->window);
     eina_hash_add(data->windows, &wind->id, window);
+
+    if(keyboard.imf_context == NULL)
+        Tizen_InitKeyboard(_this);
 
     return 0;
 }
