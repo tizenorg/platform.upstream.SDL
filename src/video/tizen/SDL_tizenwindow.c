@@ -41,21 +41,18 @@
 SDL_bool
 Tizen_GetWindowWMInfo(_THIS, SDL_Window *window, SDL_SysWMinfo *info)
 {
-    TRACE_ENTER();
     return SDL_TRUE;
 }
 
 int
 Tizen_SetWindowHitTest(SDL_Window *window, SDL_bool enabled)
 {
-    TRACE_ENTER();
     return 0;  /* just succeed, the real work is done elsewhere. */
 }
 
 void
 Tizen_ShowWindow(_THIS, SDL_Window *window)
 {
-    TRACE_ENTER();
     SDL_WindowData *wind = window->driverdata;
 
     ecore_wl_window_show(wind->window);
@@ -65,14 +62,12 @@ void
 Tizen_SetWindowFullscreen(_THIS, SDL_Window *window,
                           SDL_VideoDisplay *_display, SDL_bool fullscreen)
 {
-    TRACE_ENTER();
     /*DO NOTHING*/
 }
 
 int
 Tizen_CreateWindow(_THIS, SDL_Window *window)
 {
-    TRACE_ENTER();
     SDL_VideoData *data = _this->driverdata;
     SDL_WindowData *wind;
 
@@ -119,7 +114,6 @@ Tizen_CreateWindow(_THIS, SDL_Window *window)
 void
 Tizen_SetWindowSize(_THIS, SDL_Window *window)
 {
-    TRACE_ENTER();
     SDL_WindowData *wind = window->driverdata;
 
     wl_egl_window_resize(wind->egl_window, window->w, window->h, 0, 0);
@@ -128,7 +122,6 @@ Tizen_SetWindowSize(_THIS, SDL_Window *window)
 void
 Tizen_DestroyWindow(_THIS, SDL_Window *window)
 {
-    TRACE_ENTER();
     SDL_VideoData *data = _this->driverdata;
     SDL_WindowData *wind = window->driverdata;
 
@@ -178,7 +171,6 @@ __tizen_cb_window_visibility_change(void *data, int type, void *event)
 int 
 Tizen_InitWindow(_THIS)
 {
-    TRACE_ENTER();
     SDL_VideoData *data = _this->driverdata;
 
     data->windows = eina_hash_int32_new(NULL);
@@ -203,7 +195,6 @@ Tizen_InitWindow(_THIS)
 void
 Tizen_DeinitWindow(_THIS)
 {
-    TRACE_ENTER();
     SDL_VideoData *data = _this->driverdata;
 
     eina_hash_free(data->windows);

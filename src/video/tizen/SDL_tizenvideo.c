@@ -79,21 +79,18 @@ __tizen_add_display(SDL_VideoData *d, uint32_t id)
 static int
 Tizen_Available(void)
 {
-    TRACE_ENTER();
     return 1;
 }
 
 static void
 Tizen_DeleteDevice(SDL_VideoDevice *device)
 {
-    TRACE_ENTER();
     SDL_free(device);
 }
 
 static SDL_VideoDevice *
 Tizen_CreateDevice(int devindex)
 {
-    TRACE_ENTER();
     SDL_VideoDevice *device;
 
     /* Initialize all variables that we clean on shutdown */
@@ -152,7 +149,6 @@ VideoBootStrap TIZEN_bootstrap = {
 int
 Tizen_VideoInit(_THIS)
 {
-    TRACE_ENTER();
     SDL_VideoData *data = SDL_malloc(sizeof * data);
 
     if (data == NULL)
@@ -171,20 +167,18 @@ Tizen_VideoInit(_THIS)
 static void
 Tizen_GetDisplayModes(_THIS, SDL_VideoDisplay *sdl_display)
 {
-    TRACE_ENTER();
+
 }
 
 static int
 Tizen_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
 {
-    TRACE_ENTER();
     return SDL_Unsupported();
 }
 
 void
 Tizen_VideoQuit(_THIS)
 {
-    TRACE_ENTER();
     SDL_VideoData *data = _this->driverdata;
 
     Tizen_DeinitWindow(_this);

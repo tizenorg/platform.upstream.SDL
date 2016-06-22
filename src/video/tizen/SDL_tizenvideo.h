@@ -36,12 +36,6 @@ typedef struct {
     Eina_Hash *windows;
 } SDL_VideoData;
 
-#ifdef ENABLE_DEBUG
-#define TRACE_ENTER() printf("[SDL] %s:%d\n", __FUNCTION__, __LINE__)
-#else
-#define TRACE_ENTER()
-#endif
-
 #endif /* _SDL_tizenvideo_h */
 
 /* vi: set ts=4 sw=4 expandtab: */

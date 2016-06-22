@@ -23,6 +23,7 @@
 #include "../../SDL_internal.h"
 
 #include "SDL_tizenkeyboard.h"
+#include "SDL_log.h"
 
 /*
     Tizen Keyboard
@@ -32,8 +33,7 @@ void
 _ecore_imf_event_commit_cb(void *data, Ecore_IMF_Context *ctx EINA_UNUSED, void *event_info)
 {
     char *commit_str = (char *)event_info;
-    printf("commit string : %s\n", commit_str);
-
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "commit string : %s\n", commit_str);
     SDL_SendKeyboardText(commit_str);
     return;
 }
@@ -43,7 +43,7 @@ _ecore_imf_event_state_change_cb(void *data, Ecore_IMF_Context *ctx EINA_UNUSED,
 {
     //ECORE_IMF_INPUT_PANEL_STATE_SHOW : 0
     //ECORE_IMF_INPUT_PANEL_STATE_HIDE : 1
-    printf("Keyboard State  : %d\n", value);
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Keyboard State  : %d\n", value);
     return;
 }
 
@@ -56,7 +56,7 @@ void Tizen_InitKeyboard(_THIS)
     const char *default_id = ecore_imf_context_default_id_get();
     if (!default_id)
       {
-         fprintf(stderr, "Can't create ecore_imf_context\n");
+         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Can't create ecore_imf_context\n");
          return;
       }
 

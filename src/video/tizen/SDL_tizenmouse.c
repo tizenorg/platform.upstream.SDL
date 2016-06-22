@@ -43,7 +43,6 @@ Eina_Bool
 __tizen_cb_event_mouseup_change(void *data, int type, void *event)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
-    printf("TIZEN EV :mouse up\n");
     if (!event) return ECORE_CALLBACK_PASS_ON;
 
     Ecore_Event_Mouse_Button *e = event;
@@ -57,7 +56,6 @@ Eina_Bool
 __tizen_cb_event_mousemove_change(void *data, int type, void *event)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
-    printf("TIZEN  : mousemove\n");
 
     if (!event) return ECORE_CALLBACK_PASS_ON;
 
