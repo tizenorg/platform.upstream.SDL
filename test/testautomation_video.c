@@ -897,6 +897,9 @@ video_getWindowId(void *arg)
 int
 video_getWindowPixelFormat(void *arg)
 {
+#if defined(SDL_VIDEO_DRIVER_WAYLAND) || defined(SDL_VIDEO_DRIVER_TIZEN)
+  return TEST_UNSUPPORTED;
+#endif
   const char* title = "video_getWindowPixelFormat Test Window";
   SDL_Window* window;
   Uint32 format;

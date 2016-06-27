@@ -32,7 +32,7 @@
 const char *SDLTest_InvalidNameFormat = "(Invalid)";
 
 /* Log summary message format */
-const char *SDLTest_LogSummaryFormat = "%s Summary: Total=%d Passed=%d Failed=%d Skipped=%d";
+const char *SDLTest_LogSummaryFormat = "%s Summary: Total=%d Passed=%d Failed=%d Skipped=%d Unsupported=%d";
 
 /* Final result message format */
 const char *SDLTest_FinalResultFormat = ">>> %s '%s': %s\n";
@@ -274,6 +274,9 @@ SDLTest_RunTest(SDLTest_TestSuiteReference *testSuite, SDLTest_TestCaseReference
     } else if (testCaseResult == TEST_ABORTED) {
         /* Test was aborted early; assume it failed */
         testResult = TEST_RESULT_FAILED;
+    } else if (testCaseResult == TEST_UNSUPPORTED) {
+        /* Test was unsupported */
+        testResult = TEST_RESULT_UNSUPPORTED;
     } else {
         /* Perform failure analysis based on asserts */
         testResult = SDLTest_AssertSummaryToTestResult();
@@ -305,6 +308,9 @@ SDLTest_RunTest(SDLTest_TestSuiteReference *testSuite, SDLTest_TestCaseReference
     } else if (testCaseResult == TEST_ABORTED) {
         /* Test was aborted early; assume it failed */
         SDLTest_LogError((char *)SDLTest_FinalResultFormat, "Test", testCase->name, "Failed (Aborted)");
+    } else if (testCaseResult == TEST_UNSUPPORTED) {
+        /* Test was unsupported */
+        SDLTest_Log((char *)SDLTest_FinalResultFormat, "Test", testCase->name, "Unsupported");
     } else {
         SDLTest_LogAssertSummary();
     }
@@ -392,9 +398,11 @@ int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *user
     Uint32 totalTestFailedCount = 0;
     Uint32 totalTestPassedCount = 0;
     Uint32 totalTestSkippedCount = 0;
+    Uint32 totalTestUnsupportedCount = 0;
     Uint32 testFailedCount = 0;
     Uint32 testPassedCount = 0;
     Uint32 testSkippedCount = 0;
+    Uint32 testUnsupportedCount = 0;
     Uint32 countSum = 0;
     char *logFormat = (char *)SDLTest_LogSummaryFormat;
     SDLTest_TestCaseReference **failedTests;
@@ -420,6 +428,7 @@ int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *user
     totalTestFailedCount = 0;
     totalTestPassedCount = 0;
     totalTestSkippedCount = 0;
+    totalTestUnsupportedCount = 0;
 
     /* Take time - run start */
     runStartSeconds = GetClock();
@@ -509,6 +518,7 @@ int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *user
             testFailedCount = 0;
             testPassedCount = 0;
             testSkippedCount = 0;
+            testUnsupportedCount = 0;
 
             /* Take time - suite start */
             suiteStartSeconds = GetClock();
@@ -575,6 +585,9 @@ int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *user
                         } else if (testResult == TEST_RESULT_SKIPPED) {
                             testSkippedCount++;
                             totalTestSkippedCount++;
+                        } else if (testResult == TEST_RESULT_UNSUPPORTED) {
+                            testUnsupportedCount++;
+                            totalTestUnsupportedCount++;
                         } else {
                             testFailedCount++;
                             totalTestFailedCount++;
@@ -625,15 +638,15 @@ int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *user
             SDLTest_Log("Total Suite runtime: %.1f sec", runtime);
 
             /* Log summary and final Suite result */
-            countSum = testPassedCount + testFailedCount + testSkippedCount;
+            countSum = testPassedCount + testFailedCount + testSkippedCount + testUnsupportedCount;
             if (testFailedCount == 0)
             {
-                SDLTest_Log(logFormat, "Suite", countSum, testPassedCount, testFailedCount, testSkippedCount);
+                SDLTest_Log(logFormat, "Suite", countSum, testPassedCount, testFailedCount, testSkippedCount, testUnsupportedCount);
                 SDLTest_Log((char *)SDLTest_FinalResultFormat, "Suite", currentSuiteName, "Passed");
             }
             else
             {
-                SDLTest_LogError(logFormat, "Suite", countSum, testPassedCount, testFailedCount, testSkippedCount);
+                SDLTest_LogError(logFormat, "Suite", countSum, testPassedCount, testFailedCount, testSkippedCount, testUnsupportedCount);
                 SDLTest_LogError((char *)SDLTest_FinalResultFormat, "Suite", currentSuiteName, "Failed");
             }
 
@@ -649,17 +662,17 @@ int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *user
     SDLTest_Log("Total Run runtime: %.1f sec", runtime);
 
     /* Log summary and final run result */
-    countSum = totalTestPassedCount + totalTestFailedCount + totalTestSkippedCount;
+    countSum = totalTestPassedCount + totalTestFailedCount + totalTestSkippedCount + totalTestUnsupportedCount;
     if (totalTestFailedCount == 0)
     {
         runResult = 0;
-        SDLTest_Log(logFormat, "Run", countSum, totalTestPassedCount, totalTestFailedCount, totalTestSkippedCount);
+        SDLTest_Log(logFormat, "Run", countSum, totalTestPassedCount, totalTestFailedCount, totalTestSkippedCount, totalTestUnsupportedCount);
         SDLTest_Log((char *)SDLTest_FinalResultFormat, "Run /w seed", runSeed, "Passed");
     }
     else
     {
         runResult = 1;
-        SDLTest_LogError(logFormat, "Run", countSum, totalTestPassedCount, totalTestFailedCount, totalTestSkippedCount);
+        SDLTest_LogError(logFormat, "Run", countSum, totalTestPassedCount, totalTestFailedCount, totalTestSkippedCount, totalTestUnsupportedCount);
         SDLTest_LogError((char *)SDLTest_FinalResultFormat, "Run /w seed", runSeed, "Failed");
     }
 

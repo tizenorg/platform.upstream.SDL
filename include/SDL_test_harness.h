@@ -52,6 +52,7 @@ extern "C" {
 #define TEST_STARTED         0
 #define TEST_COMPLETED       1
 #define TEST_SKIPPED         2
+#define TEST_UNSUPPORTED     3
 
 /* ! Definition of all the possible test results for the harness */
 #define TEST_RESULT_PASSED              0
@@ -59,6 +60,7 @@ extern "C" {
 #define TEST_RESULT_NO_ASSERT           2
 #define TEST_RESULT_SKIPPED             3
 #define TEST_RESULT_SETUP_FAILURE       4
+#define TEST_RESULT_UNSUPPORTED         5
 
 /* !< Function pointer to a test case setup function (run before every test) */
 typedef void (*SDLTest_TestCaseSetUpFp)(void *arg);
