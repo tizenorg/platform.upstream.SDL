@@ -1,0 +1,9 @@
+42 tests was in this Test file.
+Two groups was defined as AutomationTest and InteractiveTest.
+
+There was two problem in InteractiveTest
+first is testmessage because it seems tizen does not messagebox in SDL2.
+second is testshape, tizen have problem in SDL_CreateShapedWindow.
+
+The log file was testlog.txt which was in just the same folder as the executebale file.
+ 
