@@ -95,7 +95,17 @@ static void
 _tizen_app_orient_changed(app_event_info_h event_info, void *user_data)
 {
     /*APP_EVENT_DEVICE_ORIENTATION_CHANGED*/
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "orient changedCB");
+    app_device_orientation_e orientation;
+    app_event_get_device_orientation(event_info, &orientation);
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION," Orientation Changed CB, Rotation Degree : %d", orientation);
+    SDL_Event event;
+    SDL_memset(&event, 0, sizeof(event));
+    event.type = SDL_ROTATEEVENT;
+    event.user.code = NULL;
+    event.window.data1 = (void*)orientation;
+    event.user.data2 = -1;
+
+    SDL_PushEvent(&event);
     return;
 }
 
