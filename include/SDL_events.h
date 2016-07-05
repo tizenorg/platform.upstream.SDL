@@ -88,6 +88,7 @@ typedef enum
     /* Window events */
     SDL_WINDOWEVENT    = 0x200, /**< Window state change */
     SDL_SYSWMEVENT,             /**< System specific event */
+    SDL_WINDOWROTATE,           /**< Window orientation change */
 
     /* Keyboard events */
     SDL_KEYDOWN        = 0x300, /**< Key pressed */
