@@ -161,6 +161,7 @@ Tizen_VideoInit(_THIS)
     __tizen_add_display(data, 0);
 
     Tizen_InitWindow(_this);
+    Tizen_InitMouse();
     return 0;
 }
 
@@ -183,6 +184,7 @@ Tizen_VideoQuit(_THIS)
 
     Tizen_DeinitWindow(_this);
     Tizen_FiniKeyboard();
+    Tizen_FiniMouse();
     SDL_tizen_app_exit();
     ecore_wl_shutdown();
     free(data);
