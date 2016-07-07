@@ -161,6 +161,7 @@ Tizen_VideoInit(_THIS)
     __tizen_add_display(data, 0);
 
     Tizen_InitWindow(_this);
+    Tizen_InitMouse();
     return 0;
 }
 
@@ -188,6 +189,7 @@ Tizen_VideoQuit(_THIS)
     free(data);
 
     _this->driverdata = NULL;
+    Tizen_FiniMouse();
 }
 
 

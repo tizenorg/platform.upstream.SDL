@@ -108,6 +108,8 @@ Tizen_CreateWindow(_THIS, SDL_Window *window)
     if(keyboard.imf_context == NULL)
         Tizen_InitKeyboard(_this);
 
+    SDL_SetMouseFocus(window);
+
     return 0;
 }
 
