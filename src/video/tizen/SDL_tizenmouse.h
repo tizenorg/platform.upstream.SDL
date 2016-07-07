@@ -26,6 +26,8 @@
 #include "SDL_tizenwindow.h"
 #include "SDL_events.h"
 
+#include "SDL_assert.h"
+
 extern Eina_Bool __tizen_cb_event_mouseup_change(void *data, int type, void *event);
 extern Eina_Bool __tizen_cb_event_mousedown_change(void *data, int type, void *event);
 extern Eina_Bool __tizen_cb_event_mousemove_change(void *data, int type, void *event);
