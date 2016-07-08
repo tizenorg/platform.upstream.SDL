@@ -211,7 +211,6 @@ Tizen_InitMouse(void)
     SDL_Mouse *mouse = SDL_GetMouse();
 
     mouse->CreateCursor = Tizen_CreateCursor;
-    mouse->ShowCursor = Tizen_ShowCursor;
     mouse->FreeCursor = Tizen_FreeCursor;
 }
 
