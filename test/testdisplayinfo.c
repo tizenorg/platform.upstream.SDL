@@ -23,7 +23,7 @@ print_mode(const char *prefix, const SDL_DisplayMode *mode)
     if (!mode)
         return;
 
-    SDL_Log("%s: fmt=%s w=%d h=%d refresh=%d\n",
+    SDLTest_Log("%s: fmt=%s w=%d h=%d refresh=%d\n",
             prefix, SDL_GetPixelFormatName(mode->format),
             mode->w, mode->h, mode->refresh_rate);
 }
@@ -31,6 +31,8 @@ print_mode(const char *prefix, const SDL_DisplayMode *mode)
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     SDL_DisplayMode mode;
     int num_displays, dpy;
 
@@ -39,14 +41,14 @@ main(int argc, char *argv[])
 
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return 1;
     }
 
-    SDL_Log("Using video target '%s'.\n", SDL_GetCurrentVideoDriver());
+    SDLTest_Log("Using video target '%s'.\n", SDL_GetCurrentVideoDriver());
     num_displays = SDL_GetNumVideoDisplays();
 
-    SDL_Log("See %d displays.\n", num_displays);
+    SDLTest_Log("See %d displays.\n", num_displays);
 
     for (dpy = 0; dpy < num_displays; dpy++) {
         const int num_modes = SDL_GetNumDisplayModes(dpy);
@@ -54,23 +56,23 @@ main(int argc, char *argv[])
         int m;
 
         SDL_GetDisplayBounds(dpy, &rect);
-        SDL_Log("%d: \"%s\" (%dx%d, (%d, %d)), %d modes.\n", dpy, SDL_GetDisplayName(dpy), rect.w, rect.h, rect.x, rect.y, num_modes);
+        SDLTest_Log("%d: \"%s\" (%dx%d, (%d, %d)), %d modes.\n", dpy, SDL_GetDisplayName(dpy), rect.w, rect.h, rect.x, rect.y, num_modes);
 
         if (SDL_GetCurrentDisplayMode(dpy, &mode) == -1) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "    CURRENT: failed to query (%s)\n", SDL_GetError());
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "    CURRENT: failed to query (%s)\n", SDL_GetError());
         } else {
             print_mode("CURRENT", &mode);
         }
 
         if (SDL_GetDesktopDisplayMode(dpy, &mode) == -1) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "    DESKTOP: failed to query (%s)\n", SDL_GetError());
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "    DESKTOP: failed to query (%s)\n", SDL_GetError());
         } else {
             print_mode("DESKTOP", &mode);
         }
 
         for (m = 0; m < num_modes; m++) {
             if (SDL_GetDisplayMode(dpy, m, &mode) == -1) {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "    MODE %d: failed to query (%s)\n", m, SDL_GetError());
+                SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "    MODE %d: failed to query (%s)\n", m, SDL_GetError());
             } else {
                 char prefix[64];
                 SDL_snprintf(prefix, sizeof (prefix), "    MODE %d", m);
@@ -78,7 +80,7 @@ main(int argc, char *argv[])
             }
         }
 
-        SDL_Log("\n");
+        SDLTest_Log("\n");
     }
 
     SDL_Quit();

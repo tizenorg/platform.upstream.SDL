@@ -171,6 +171,8 @@ events_addDelEventWatchWithUserdata(void *arg)
    SDLTest_AssertPass("Call to SDL_PumpEvents()");
    SDLTest_AssertCheck(_eventFilterCalled == 0, "Check that event filter was NOT called");
 
+   SDL_FlushEvent(0);
+   SDLTest_AssertPass("Call to SDL_FlushEvent()");
    return TEST_COMPLETED;
 }
 

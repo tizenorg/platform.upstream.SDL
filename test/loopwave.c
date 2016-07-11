@@ -90,6 +90,9 @@ loop()
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
+	
     int i;
     char filename[4096];
 
@@ -98,18 +101,18 @@ main(int argc, char *argv[])
 
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return (1);
     }
 
     if (argc > 1) {
         SDL_strlcpy(filename, argv[1], sizeof(filename));
     } else {
-        SDL_strlcpy(filename, "sample.wav", sizeof(filename));
+        SDL_strlcpy(filename, "res/sample.wav", sizeof(filename));
     }
     /* Load the wave file into memory */
     if (SDL_LoadWAV(filename, &wave.spec, &wave.sound, &wave.soundlen) == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", filename, SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", filename, SDL_GetError());
         quit(1);
     }
 
@@ -127,19 +130,19 @@ main(int argc, char *argv[])
 #endif /* HAVE_SIGNAL_H */
 
     /* Show the list of available drivers */
-    SDL_Log("Available audio drivers:");
+    SDLTest_Log("Available audio drivers:");
     for (i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
-        SDL_Log("%i: %s", i, SDL_GetAudioDriver(i));
+        SDLTest_Log("%i: %s", i, SDL_GetAudioDriver(i));
     }
 
     /* Initialize fillerup() variables */
     if (SDL_OpenAudio(&wave.spec, NULL) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't open audio: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't open audio: %s\n", SDL_GetError());
         SDL_FreeWAV(wave.sound);
         quit(2);
     }
 
-    SDL_Log("Using audio driver: %s\n", SDL_GetCurrentAudioDriver());
+    SDLTest_Log("Using audio driver: %s\n", SDL_GetCurrentAudioDriver());
 
     /* Let the audio run */
     SDL_PauseAudio(0);
@@ -148,7 +151,10 @@ main(int argc, char *argv[])
     emscripten_set_main_loop(loop, 0, 1);
 #else
     while (!done && (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING))
-        SDL_Delay(1000);
+	{
+        SDL_Delay(10000);
+		done = 1;
+	}
 #endif
 
     /* Clean up on signal */

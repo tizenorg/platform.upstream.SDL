@@ -78,7 +78,7 @@ test_multi_audio(int devcount)
 #endif
 
     if (devcount > 64) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Too many devices (%d), clamping to 64...\n",
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Too many devices (%d), clamping to 64...\n",
                 devcount);
         devcount = 64;
     }
@@ -87,14 +87,14 @@ test_multi_audio(int devcount)
 
     for (i = 0; i < devcount; i++) {
         const char *devname = SDL_GetAudioDeviceName(i, 0);
-        SDL_Log("playing on device #%d: ('%s')...", i, devname);
+        SDLTest_Log("playing on device #%d: ('%s')...", i, devname);
         fflush(stdout);
 
         SDL_memset(&cbd[0], '\0', sizeof(callback_data));
         spec.userdata = &cbd[0];
         cbd[0].dev = SDL_OpenAudioDevice(devname, 0, &spec, NULL, 0);
         if (cbd[0].dev == 0) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Open device failed: %s\n", SDL_GetError());
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Open device failed: %s\n", SDL_GetError());
         } else {
             SDL_PauseAudioDevice(cbd[0].dev, 0);
 #ifdef __EMSCRIPTEN__
@@ -110,20 +110,20 @@ test_multi_audio(int devcount)
             }
             SDL_PauseAudioDevice(cbd[0].dev, 1);
 #endif
-            SDL_Log("done.\n");
+            SDLTest_Log("done.\n");
             SDL_CloseAudioDevice(cbd[0].dev);
         }
     }
 
     SDL_memset(cbd, '\0', sizeof(cbd));
 
-    SDL_Log("playing on all devices...\n");
+    SDLTest_Log("playing on all devices...\n");
     for (i = 0; i < devcount; i++) {
         const char *devname = SDL_GetAudioDeviceName(i, 0);
         spec.userdata = &cbd[i];
         cbd[i].dev = SDL_OpenAudioDevice(devname, 0, &spec, NULL, 0);
         if (cbd[i].dev == 0) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Open device %d failed: %s\n", i, SDL_GetError());
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Open device %d failed: %s\n", i, SDL_GetError());
         }
     }
 
@@ -156,7 +156,7 @@ test_multi_audio(int devcount)
         }
     }
 
-    SDL_Log("All done!\n");
+    SDLTest_Log("All done!\n");
 #endif
 }
 
@@ -164,6 +164,8 @@ test_multi_audio(int devcount)
 int
 main(int argc, char **argv)
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int devcount = 0;
 
     /* Enable standard application logging */
@@ -171,23 +173,23 @@ main(int argc, char **argv)
 
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return (1);
     }
 
-    SDL_Log("Using audio driver: %s\n", SDL_GetCurrentAudioDriver());
+    SDLTest_Log("Using audio driver: %s\n", SDL_GetCurrentAudioDriver());
     
     devcount = SDL_GetNumAudioDevices(0);
     if (devcount < 1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Don't see any specific audio devices!\n");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Don't see any specific audio devices!\n");
     } else {
         if (argv[1] == NULL) {
-            argv[1] = "sample.wav";
+            argv[1] = "res/sample.wav";
         }
 
         /* Load the wave file into memory */
         if (SDL_LoadWAV(argv[1], &spec, &sound, &soundlen) == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", argv[1],
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", argv[1],
                     SDL_GetError());
         } else {
             test_multi_audio(devcount);

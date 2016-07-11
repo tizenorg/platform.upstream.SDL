@@ -21,7 +21,8 @@
 
 #include "SDL_test.h"
 #include "SDL_test_common.h"
-
+#define WINDOW_WIDTH    720
+#define WINDOW_HEIGHT   1280
 
 static SDLTest_CommonState *state;
 
@@ -110,7 +111,7 @@ loop()
     viewport.w = 100 + j * 50;
     viewport.h = 100 + j * 50;
     j = (j + 1) % 4;
-    SDL_Log("Current Viewport x=%i y=%i w=%i h=%i", viewport.x, viewport.y, viewport.w, viewport.h);
+    SDLTest_Log("Current Viewport x=%i y=%i w=%i h=%i", viewport.x, viewport.y, viewport.w, viewport.h);
 
     for (i = 0; i < state->num_windows; ++i) {
         if (state->windows[i] == NULL)
@@ -140,11 +141,15 @@ loop()
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i;
     Uint32 then, now, frames;
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -161,7 +166,7 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s [--target]\n",
+            SDLTest_Log("Usage: %s %s [--target]\n",
                     argv[0], SDLTest_CommonUsage(state));
             quit(1);
         }
@@ -208,7 +213,7 @@ main(int argc, char *argv[])
     now = SDL_GetTicks();
     if (now > then) {
         double fps = ((double) frames * 1000) / (now - then);
-        SDL_Log("%2.2f frames per second\n", fps);
+        SDLTest_Log("%2.2f frames per second\n", fps);
     }
     quit(0);
     return 0;

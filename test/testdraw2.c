@@ -21,7 +21,8 @@
 #endif
 
 #include "SDL_test_common.h"
-
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
 #define NUM_OBJECTS 100
 
 static SDLTest_CommonState *state;
@@ -208,6 +209,8 @@ loop()
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i;
     Uint32 then, now, frames;
 
@@ -219,6 +222,8 @@ main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -256,7 +261,7 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s [--blend none|blend|add|mod] [--cyclecolor] [--cyclealpha]\n",
+            SDLTest_Log("Usage: %s %s [--blend none|blend|add|mod] [--cyclecolor] [--cyclealpha]\n",
                     argv[0], SDLTest_CommonUsage(state));
             return 1;
         }
@@ -287,6 +292,8 @@ main(int argc, char *argv[])
     while (!done) {
         ++frames;
         loop();
+		//SDL_Delay(10000);  /* let it play for awhile. */
+		//done = 1;
         }
 #endif
 
@@ -297,7 +304,7 @@ main(int argc, char *argv[])
     now = SDL_GetTicks();
     if (now > then) {
         double fps = ((double) frames * 1000) / (now - then);
-        SDL_Log("%2.2f frames per second\n", fps);
+        SDLTest_Log("%2.2f frames per second\n", fps);
     }
     return 0;
 }

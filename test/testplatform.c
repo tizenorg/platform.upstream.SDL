@@ -32,30 +32,30 @@ TestTypes(SDL_bool verbose)
 
     if (badsize(sizeof(Uint8), 1)) {
         if (verbose)
-            SDL_Log("sizeof(Uint8) != 1, instead = %u\n",
+            SDLTest_Log("sizeof(Uint8) != 1, instead = %u\n",
                    (unsigned int)sizeof(Uint8));
         ++error;
     }
     if (badsize(sizeof(Uint16), 2)) {
         if (verbose)
-            SDL_Log("sizeof(Uint16) != 2, instead = %u\n",
+            SDLTest_Log("sizeof(Uint16) != 2, instead = %u\n",
                    (unsigned int)sizeof(Uint16));
         ++error;
     }
     if (badsize(sizeof(Uint32), 4)) {
         if (verbose)
-            SDL_Log("sizeof(Uint32) != 4, instead = %u\n",
+            SDLTest_Log("sizeof(Uint32) != 4, instead = %u\n",
                    (unsigned int)sizeof(Uint32));
         ++error;
     }
     if (badsize(sizeof(Uint64), 8)) {
         if (verbose)
-            SDL_Log("sizeof(Uint64) != 8, instead = %u\n",
+            SDLTest_Log("sizeof(Uint64) != 8, instead = %u\n",
                    (unsigned int)sizeof(Uint64));
         ++error;
     }
     if (verbose && !error)
-        SDL_Log("All data types are the expected size.\n");
+        SDLTest_Log("All data types are the expected size.\n");
 
     return (error ? 1 : 0);
 }
@@ -80,7 +80,7 @@ TestEndian(SDL_bool verbose)
     swapped64 |= 0xDEADBEEF;
 
     if (verbose) {
-        SDL_Log("Detected a %s endian machine.\n",
+        SDLTest_Log("Detected a %s endian machine.\n",
                (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big");
     }
     if ((*((char *) &value) >> 4) == 0x1) {
@@ -90,38 +90,38 @@ TestEndian(SDL_bool verbose)
     }
     if (real_byteorder != SDL_BYTEORDER) {
         if (verbose) {
-            SDL_Log("Actually a %s endian machine!\n",
+            SDLTest_Log("Actually a %s endian machine!\n",
                    (real_byteorder == SDL_LIL_ENDIAN) ? "little" : "big");
         }
         ++error;
     }
     if (verbose) {
-        SDL_Log("Value 16 = 0x%X, swapped = 0x%X\n", value16,
+        SDLTest_Log("Value 16 = 0x%X, swapped = 0x%X\n", value16,
                SDL_Swap16(value16));
     }
     if (SDL_Swap16(value16) != swapped16) {
         if (verbose) {
-            SDL_Log("16 bit value swapped incorrectly!\n");
+            SDLTest_Log("16 bit value swapped incorrectly!\n");
         }
         ++error;
     }
     if (verbose) {
-        SDL_Log("Value 32 = 0x%X, swapped = 0x%X\n", value32,
+        SDLTest_Log("Value 32 = 0x%X, swapped = 0x%X\n", value32,
                SDL_Swap32(value32));
     }
     if (SDL_Swap32(value32) != swapped32) {
         if (verbose) {
-            SDL_Log("32 bit value swapped incorrectly!\n");
+            SDLTest_Log("32 bit value swapped incorrectly!\n");
         }
         ++error;
     }
     if (verbose) {
-        SDL_Log("Value 64 = 0x%"SDL_PRIX64", swapped = 0x%"SDL_PRIX64"\n", value64,
+        SDLTest_Log("Value 64 = 0x%"SDL_PRIX64", swapped = 0x%"SDL_PRIX64"\n", value64,
                SDL_Swap64(value64));
     }
     if (SDL_Swap64(value64) != swapped64) {
         if (verbose) {
-            SDL_Log("64 bit value swapped incorrectly!\n");
+            SDLTest_Log("64 bit value swapped incorrectly!\n");
         }
         ++error;
     }
@@ -133,19 +133,19 @@ int
 TestCPUInfo(SDL_bool verbose)
 {
     if (verbose) {
-        SDL_Log("CPU count: %d\n", SDL_GetCPUCount());
-        SDL_Log("CPU cache line size: %d\n", SDL_GetCPUCacheLineSize());
-        SDL_Log("RDTSC %s\n", SDL_HasRDTSC()? "detected" : "not detected");
-        SDL_Log("AltiVec %s\n", SDL_HasAltiVec()? "detected" : "not detected");
-        SDL_Log("MMX %s\n", SDL_HasMMX()? "detected" : "not detected");
-        SDL_Log("3DNow! %s\n", SDL_Has3DNow()? "detected" : "not detected");
-        SDL_Log("SSE %s\n", SDL_HasSSE()? "detected" : "not detected");
-        SDL_Log("SSE2 %s\n", SDL_HasSSE2()? "detected" : "not detected");
-        SDL_Log("SSE3 %s\n", SDL_HasSSE3()? "detected" : "not detected");
-        SDL_Log("SSE4.1 %s\n", SDL_HasSSE41()? "detected" : "not detected");
-        SDL_Log("SSE4.2 %s\n", SDL_HasSSE42()? "detected" : "not detected");
-        SDL_Log("AVX %s\n", SDL_HasAVX()? "detected" : "not detected");
-        SDL_Log("System RAM %d MB\n", SDL_GetSystemRAM());
+        SDLTest_Log("CPU count: %d\n", SDL_GetCPUCount());
+        SDLTest_Log("CPU cache line size: %d\n", SDL_GetCPUCacheLineSize());
+        SDLTest_Log("RDTSC %s\n", SDL_HasRDTSC()? "detected" : "not detected");
+        SDLTest_Log("AltiVec %s\n", SDL_HasAltiVec()? "detected" : "not detected");
+        SDLTest_Log("MMX %s\n", SDL_HasMMX()? "detected" : "not detected");
+        SDLTest_Log("3DNow! %s\n", SDL_Has3DNow()? "detected" : "not detected");
+        SDLTest_Log("SSE %s\n", SDL_HasSSE()? "detected" : "not detected");
+        SDLTest_Log("SSE2 %s\n", SDL_HasSSE2()? "detected" : "not detected");
+        SDLTest_Log("SSE3 %s\n", SDL_HasSSE3()? "detected" : "not detected");
+        SDLTest_Log("SSE4.1 %s\n", SDL_HasSSE41()? "detected" : "not detected");
+        SDLTest_Log("SSE4.2 %s\n", SDL_HasSSE42()? "detected" : "not detected");
+        SDLTest_Log("AVX %s\n", SDL_HasAVX()? "detected" : "not detected");
+        SDLTest_Log("System RAM %d MB\n", SDL_GetSystemRAM());
     }
     return (0);
 }
@@ -169,7 +169,7 @@ TestAssertions(SDL_bool verbose)
     {
         const SDL_AssertData *item = SDL_GetAssertionReport();
         while (item) {
-            SDL_Log("'%s', %s (%s:%d), triggered %u times, always ignore: %s.\n",
+            SDLTest_Log("'%s', %s (%s:%d), triggered %u times, always ignore: %s.\n",
                 item->condition, item->function, item->filename,
                 item->linenum, item->trigger_count,
                 item->always_ignore ? "yes" : "no");
@@ -182,6 +182,8 @@ TestAssertions(SDL_bool verbose)
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     SDL_bool verbose = SDL_TRUE;
     int status = 0;
 
@@ -192,7 +194,7 @@ main(int argc, char *argv[])
         verbose = SDL_FALSE;
     }
     if (verbose) {
-        SDL_Log("This system is running %s\n", SDL_GetPlatform());
+        SDLTest_Log("This system is running %s\n", SDL_GetPlatform());
     }
 
     status += TestTypes(verbose);
