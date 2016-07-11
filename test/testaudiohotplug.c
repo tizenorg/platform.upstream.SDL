@@ -80,26 +80,26 @@ iteration()
     SDL_Event e;
     SDL_AudioDeviceID dev;
     while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT) {
+        if (e.type == SDL_QUIT || e.key.keysym.sym == SDLK_f) {
             done = 1;
         } else if (e.type == SDL_AUDIODEVICEADDED) {
             const char *name = SDL_GetAudioDeviceName(e.adevice.which, 0);
-            SDL_Log("New %s audio device: %s\n", e.adevice.iscapture ? "capture" : "output", name);
+            SDLTest_Log("New %s audio device: %s\n", e.adevice.iscapture ? "capture" : "output", name);
             if (!e.adevice.iscapture) {
                 positions[posindex] = 0;
                 spec.userdata = &positions[posindex++];
                 spec.callback = fillerup;
                 dev = SDL_OpenAudioDevice(name, 0, &spec, NULL, 0);
                 if (!dev) {
-                    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't open '%s': %s\n", name, SDL_GetError());
+                    SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't open '%s': %s\n", name, SDL_GetError());
                 } else {
-                    SDL_Log("Opened '%s' as %u\n", name, (unsigned int) dev);
+                    SDLTest_Log("Opened '%s' as %u\n", name, (unsigned int) dev);
                     SDL_PauseAudioDevice(dev, 0);
                 }
             }
         } else if (e.type == SDL_AUDIODEVICEREMOVED) {
             dev = (SDL_AudioDeviceID) e.adevice.which;
-            SDL_Log("%s device %u removed.\n", e.adevice.iscapture ? "capture" : "output", (unsigned int) dev);
+            SDLTest_Log("%s device %u removed.\n", e.adevice.iscapture ? "capture" : "output", (unsigned int) dev);
             SDL_CloseAudioDevice(dev);
         }
     }
@@ -119,6 +119,8 @@ loop()
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i;
     char filename[4096];
 
@@ -127,7 +129,7 @@ main(int argc, char *argv[])
 
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return (1);
     }
 
@@ -137,11 +139,11 @@ main(int argc, char *argv[])
     if (argc > 1) {
         SDL_strlcpy(filename, argv[1], sizeof(filename));
     } else {
-        SDL_strlcpy(filename, "sample.wav", sizeof(filename));
+        SDL_strlcpy(filename, "res/sample.wav", sizeof(filename));
     }
     /* Load the wave file into memory */
     if (SDL_LoadWAV(filename, &spec, &sound, &soundlen) == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", filename, SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", filename, SDL_GetError());
         quit(1);
     }
 
@@ -158,19 +160,21 @@ main(int argc, char *argv[])
 #endif /* HAVE_SIGNAL_H */
 
     /* Show the list of available drivers */
-    SDL_Log("Available audio drivers:");
+    SDLTest_Log("Available audio drivers:");
     for (i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
-        SDL_Log("%i: %s", i, SDL_GetAudioDriver(i));
+        SDLTest_Log("%i: %s", i, SDL_GetAudioDriver(i));
     }
 
-    SDL_Log("Using audio driver: %s\n", SDL_GetCurrentAudioDriver());
+    SDLTest_Log("Using audio driver: %s\n", SDL_GetCurrentAudioDriver());
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, 0, 1);
 #else
     while (!done) {
         SDL_Delay(100);
-        iteration();
+        //iteration();
+		SDL_Delay(10000);
+		done =1;
     }
 #endif
 

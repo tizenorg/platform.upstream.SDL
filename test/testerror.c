@@ -35,16 +35,18 @@ ThreadFunc(void *data)
     SDL_SetError("Thread %s (%lu) had a problem: %s",
                  (char *) data, SDL_ThreadID(), "nevermind");
     while (alive) {
-        SDL_Log("Thread '%s' is alive!\n", (char *) data);
+        SDLTest_Log("Thread '%s' is alive!\n", (char *) data);
         SDL_Delay(1 * 1000);
     }
-    SDL_Log("Child thread error string: %s\n", SDL_GetError());
+    SDLTest_Log("Child thread error string: %s\n", SDL_GetError());
     return (0);
 }
 
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     SDL_Thread *thread;
 
     /* Enable standard application logging */
@@ -52,7 +54,7 @@ main(int argc, char *argv[])
 
     /* Load the SDL library */
     if (SDL_Init(0) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return (1);
     }
 
@@ -62,15 +64,15 @@ main(int argc, char *argv[])
     alive = 1;
     thread = SDL_CreateThread(ThreadFunc, NULL, "#1");
     if (thread == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create thread: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create thread: %s\n", SDL_GetError());
         quit(1);
     }
     SDL_Delay(5 * 1000);
-    SDL_Log("Waiting for thread #1\n");
+    SDLTest_Log("Waiting for thread #1\n");
     alive = 0;
     SDL_WaitThread(thread, NULL);
 
-    SDL_Log("Main thread error string: %s\n", SDL_GetError());
+    SDLTest_Log("Main thread error string: %s\n", SDL_GetError());
 
     SDL_Quit();
     return (0);

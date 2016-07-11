@@ -48,7 +48,7 @@ ThreadFunc(void *data)
     int i;
     int tid = (int) (uintptr_t) data;
 
-    SDL_Log("Creating Thread %d\n", tid);
+    SDLTest_Log("Creating Thread %d\n", tid);
 
     for (i = 0; i < NUMTHREADS; i++) {
         char name[64];
@@ -57,18 +57,18 @@ ThreadFunc(void *data)
         sub_threads[i] = SDL_CreateThread(SubThreadFunc, name, &flags[i]);
     }
 
-    SDL_Log("Thread '%d' waiting for signal\n", tid);
+    SDLTest_Log("Thread '%d' waiting for signal\n", tid);
     while (time_for_threads_to_die[tid] != 1) {
         ;                       /* do nothing */
     }
 
-    SDL_Log("Thread '%d' sending signals to subthreads\n", tid);
+    SDLTest_Log("Thread '%d' sending signals to subthreads\n", tid);
     for (i = 0; i < NUMTHREADS; i++) {
         flags[i] = 1;
         SDL_WaitThread(sub_threads[i], NULL);
     }
 
-    SDL_Log("Thread '%d' exiting!\n", tid);
+    SDLTest_Log("Thread '%d' exiting!\n", tid);
 
     return 0;
 }
@@ -76,6 +76,8 @@ ThreadFunc(void *data)
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     SDL_Thread *threads[NUMTHREADS];
     int i;
 
@@ -84,7 +86,7 @@ main(int argc, char *argv[])
 
     /* Load the SDL library */
     if (SDL_Init(0) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return (1);
     }
 
@@ -96,7 +98,7 @@ main(int argc, char *argv[])
         threads[i] = SDL_CreateThread(ThreadFunc, name, (void*) (uintptr_t) i);
 
         if (threads[i] == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create thread: %s\n", SDL_GetError());
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create thread: %s\n", SDL_GetError());
             quit(1);
         }
     }

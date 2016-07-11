@@ -17,7 +17,8 @@
 #include <time.h>
 
 #include "SDL_test_common.h"
-
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
@@ -77,12 +78,15 @@ loop(){
 int
 main(int argc, char *argv[])
 {
-
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -106,8 +110,8 @@ main(int argc, char *argv[])
         return 3;
     };
 
-    rect.x = DEFAULT_WINDOW_WIDTH / 2;
-    rect.y = DEFAULT_WINDOW_HEIGHT / 2;
+    rect.x = WINDOW_WIDTH / 2;
+    rect.y = WINDOW_HEIGHT / 2;
     rect.w = 10;
     rect.h = 10;
     /* Main render loop */

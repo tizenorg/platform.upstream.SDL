@@ -1061,6 +1061,7 @@ _clearScreen(void)
 /* ================= Test References ================== */
 
 /* Render test cases */
+
 static const SDLTest_TestCaseReference renderTest1 =
         { (SDLTest_TestCaseFp)render_testGetNumRenderDrivers, "render_testGetNumRenderDrivers", "Tests call to SDL_GetNumRenderDrivers", TEST_ENABLED };
 
@@ -1087,7 +1088,7 @@ static const SDLTest_TestCaseReference renderTest7 =
 
 /* Sequence of Render test cases */
 static const SDLTest_TestCaseReference *renderTests[] =  {
-    &renderTest1, &renderTest2, &renderTest3, &renderTest4, &renderTest5, &renderTest6, &renderTest7, NULL
+    /*&renderTest1,*/ &renderTest2, &renderTest3, &renderTest4, &renderTest5, &renderTest6, &renderTest7, NULL
 };
 
 /* Render test suite (global) */

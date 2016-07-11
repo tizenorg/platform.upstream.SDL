@@ -23,6 +23,8 @@
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+    SDL_SetMainReady();
     SDL_version compiled;
     SDL_version linked;
 
@@ -30,18 +32,19 @@ main(int argc, char *argv[])
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-    SDL_Log("Compiled with SDL 2.0 or newer\n");
+    SDLTest_Log("Compiled with SDL 2.0 or newer\n");
 #else
-    SDL_Log("Compiled with SDL older than 2.0\n");
+    SDLTest_Log("Compiled with SDL older than 2.0\n");
 #endif
     SDL_VERSION(&compiled);
-    SDL_Log("Compiled version: %d.%d.%d.%d (%s)\n",
+    SDLTest_Log("Compiled version: %d.%d.%d.%d (%s)\n",
            compiled.major, compiled.minor, compiled.patch,
            SDL_REVISION_NUMBER, SDL_REVISION);
     SDL_GetVersion(&linked);
-    SDL_Log("Linked version: %d.%d.%d.%d (%s)\n",
+    SDLTest_Log("Linked version: %d.%d.%d.%d (%s)\n",
            linked.major, linked.minor, linked.patch,
            SDL_GetRevisionNumber(), SDL_GetRevision());
     SDL_Quit();
     return (0);
 }
+

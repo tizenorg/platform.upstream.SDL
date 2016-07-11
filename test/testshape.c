@@ -40,6 +40,8 @@ void render(SDL_Renderer *renderer,SDL_Texture *texture,SDL_Rect texture_dimensi
 
 int main(int argc,char** argv)
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     Uint8 num_pictures;
     LoadedPicture* pictures;
     int i, j;
@@ -60,12 +62,12 @@ int main(int argc,char** argv)
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     if(argc < 2) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Shape requires at least one bitmap file as argument.");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Shape requires at least one bitmap file as argument.");
         exit(-1);
     }
 
     if(SDL_VideoInit(NULL) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not initialize SDL video.");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not initialize SDL video.");
         exit(-2);
     }
 
@@ -82,7 +84,7 @@ int main(int argc,char** argv)
                 SDL_FreeSurface(pictures[j].surface);
             SDL_free(pictures);
             SDL_VideoQuit();
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not load surface from named bitmap file: %s", argv[i+1]);
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not load surface from named bitmap file: %s", argv[i+1]);
             exit(-3);
         }
 
@@ -107,7 +109,7 @@ int main(int argc,char** argv)
             SDL_FreeSurface(pictures[i].surface);
         SDL_free(pictures);
         SDL_VideoQuit();
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create shaped window for SDL_Shape.");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create shaped window for SDL_Shape.");
         exit(-4);
     }
     renderer = SDL_CreateRenderer(window,-1,0);
@@ -117,7 +119,7 @@ int main(int argc,char** argv)
             SDL_FreeSurface(pictures[i].surface);
         SDL_free(pictures);
         SDL_VideoQuit();
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create rendering context for SDL_Shape window.");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create rendering context for SDL_Shape window.");
         exit(-5);
     }
 
@@ -136,7 +138,7 @@ int main(int argc,char** argv)
             SDL_DestroyRenderer(renderer);
             SDL_DestroyWindow(window);
             SDL_VideoQuit();
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create texture for SDL_shape.");
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create texture for SDL_shape.");
             exit(-6);
         }
     }
@@ -159,7 +161,7 @@ int main(int argc,char** argv)
         if(event_pending == 1) {
             if(event.type == SDL_KEYDOWN) {
                 button_down = 1;
-                if(event.key.keysym.sym == SDLK_ESCAPE) {
+                if(event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_f) {
                     should_exit = 1;
                     break;
                 }
