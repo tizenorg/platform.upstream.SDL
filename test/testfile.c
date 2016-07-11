@@ -50,7 +50,7 @@ cleanup(void)
 static void
 rwops_error_quit(unsigned line, SDL_RWops * rwops)
 {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "testfile.c(%d): failed\n", line);
+    SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "testfile.c(%d): failed\n", line);
     if (rwops) {
         rwops->close(rwops);    /* This calls SDL_FreeRW(rwops); */
     }
@@ -61,10 +61,14 @@ rwops_error_quit(unsigned line, SDL_RWops * rwops)
 #define RWOP_ERR_QUIT(x)    rwops_error_quit( __LINE__, (x) )
 
 
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     SDL_RWops *rwops = NULL;
     char test_buf[30];
 
@@ -90,7 +94,7 @@ main(int argc, char *argv[])
     rwops = SDL_RWFromFile("something", NULL);
     if (rwops)
         RWOP_ERR_QUIT(rwops);
-    SDL_Log("test1 OK\n");
+    SDLTest_Log("test1 OK\n");
 
 /* test 2 : check that inexistent file is not successfully opened/created when required */
 /* modes : r, r+ imply that file MUST exist
@@ -123,7 +127,7 @@ main(int argc, char *argv[])
         RWOP_ERR_QUIT(rwops);
     rwops->close(rwops);
     unlink(FBASENAME2);
-    SDL_Log("test2 OK\n");
+    SDLTest_Log("test2 OK\n");
 
 /* test 3 : creation, writing , reading, seeking,
             test : w mode, r mode, w+ mode
@@ -201,7 +205,7 @@ main(int argc, char *argv[])
     if (SDL_memcmp(test_buf, "12345678901234567890", 20))
         RWOP_ERR_QUIT(rwops);
     rwops->close(rwops);
-    SDL_Log("test3 OK\n");
+    SDLTest_Log("test3 OK\n");
 
 /* test 4: same in r+ mode */
     rwops = SDL_RWFromFile(FBASENAME1, "rb+");  /* write + read + file must exists, no truncation */
@@ -236,7 +240,7 @@ main(int argc, char *argv[])
     if (SDL_memcmp(test_buf, "12345678901234567890", 20))
         RWOP_ERR_QUIT(rwops);
     rwops->close(rwops);
-    SDL_Log("test4 OK\n");
+    SDLTest_Log("test4 OK\n");
 
 /* test5 : append mode */
     rwops = SDL_RWFromFile(FBASENAME1, "ab+");  /* write + read + append */
@@ -277,7 +281,7 @@ main(int argc, char *argv[])
     if (SDL_memcmp(test_buf, "123456789012345678901234567123", 30))
         RWOP_ERR_QUIT(rwops);
     rwops->close(rwops);
-    SDL_Log("test5 OK\n");
+    SDLTest_Log("test5 OK\n");
     cleanup();
     return 0;                   /* all ok */
 }

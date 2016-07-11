@@ -22,7 +22,7 @@ hitTest(SDL_Window *window, const SDL_Point *pt, void *data)
 
     for (i = 0; i < numareas; i++) {
         if (SDL_PointInRect(pt, &areas[i])) {
-            SDL_Log("HIT-TEST: DRAGGABLE\n");
+            SDLTest_Log("HIT-TEST: DRAGGABLE\n");
             return SDL_HITTEST_DRAGGABLE;
         }
     }
@@ -30,7 +30,7 @@ hitTest(SDL_Window *window, const SDL_Point *pt, void *data)
     SDL_GetWindowSize(window, &w, &h);
 
     #define REPORT_RESIZE_HIT(name) { \
-        SDL_Log("HIT-TEST: RESIZE_" #name "\n"); \
+        SDLTest_Log("HIT-TEST: RESIZE_" #name "\n"); \
         return SDL_HITTEST_RESIZE_##name; \
     }
 
@@ -52,24 +52,28 @@ hitTest(SDL_Window *window, const SDL_Point *pt, void *data)
         REPORT_RESIZE_HIT(LEFT);
     }
 
-    SDL_Log("HIT-TEST: NORMAL\n");
+    SDLTest_Log("HIT-TEST: NORMAL\n");
     return SDL_HITTEST_NORMAL;
 }
-
+#ifdef main
+#undef main
+#endif
 
 int main(int argc, char **argv)
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int done = 0;
     SDL_Window *window;
     SDL_Renderer *renderer;
 
     /* !!! FIXME: check for errors. */
     SDL_Init(SDL_INIT_VIDEO);
-    window = SDL_CreateWindow("Drag the red boxes", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("Drag the red boxes", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 720, 1280, SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     if (SDL_SetWindowHitTest(window, hitTest, NULL) == -1) {
-        SDL_Log("Enabling hit-testing failed!\n");
+        SDLTest_Log("Enabling hit-testing failed!\n");
         SDL_Quit();
         return 1;
     }
@@ -91,21 +95,21 @@ int main(int argc, char **argv)
             switch (e.type)
             {
                 case SDL_MOUSEBUTTONDOWN:
-                    SDL_Log("button down!\n");
+                    SDLTest_Log("button down!\n");
                     break;
 
                 case SDL_MOUSEBUTTONUP:
-                    SDL_Log("button up!\n");
+                    SDLTest_Log("button up!\n");
                     break;
 
                 case SDL_WINDOWEVENT:
                     if (e.window.event == SDL_WINDOWEVENT_MOVED) {
-                        SDL_Log("Window event moved to (%d, %d)!\n", (int) e.window.data1, (int) e.window.data2);
+                        SDLTest_Log("Window event moved to (%d, %d)!\n", (int) e.window.data1, (int) e.window.data2);
                     }
                     break;
 
                 case SDL_KEYDOWN:
-                    if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_f) {
                         done = 1;
                     } else if (e.key.keysym.sym == SDLK_x) {
                         if (!areas) {

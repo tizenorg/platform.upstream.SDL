@@ -11,10 +11,14 @@
 */
 
 #include "SDL.h"
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char **argv)
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     SDL_AudioSpec spec;
     SDL_AudioCVT cvt;
     Uint32 len = 0;
@@ -29,26 +33,26 @@ main(int argc, char **argv)
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     if (argc != 4) {
-        SDL_Log("USAGE: %s in.wav out.wav newfreq\n", argv[0]);
+        SDLTest_Log("USAGE: %s in.wav out.wav newfreq\n", argv[0]);
         return 1;
     }
 
     cvtfreq = SDL_atoi(argv[3]);
 
     if (SDL_Init(SDL_INIT_AUDIO) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init() failed: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init() failed: %s\n", SDL_GetError());
         return 2;
     }
 
     if (SDL_LoadWAV(argv[1], &spec, &data, &len) == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to load %s: %s\n", argv[1], SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to load %s: %s\n", argv[1], SDL_GetError());
         SDL_Quit();
         return 3;
     }
 
     if (SDL_BuildAudioCVT(&cvt, spec.format, spec.channels, spec.freq,
                           spec.format, spec.channels, cvtfreq) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to build CVT: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to build CVT: %s\n", SDL_GetError());
         SDL_FreeWAV(data);
         SDL_Quit();
         return 4;
@@ -57,7 +61,7 @@ main(int argc, char **argv)
     cvt.len = len;
     cvt.buf = (Uint8 *) SDL_malloc(len * cvt.len_mult);
     if (cvt.buf == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory.\n");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory.\n");
         SDL_FreeWAV(data);
         SDL_Quit();
         return 5;
@@ -65,7 +69,7 @@ main(int argc, char **argv)
     SDL_memcpy(cvt.buf, data, len);
 
     if (SDL_ConvertAudio(&cvt) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Conversion failed: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Conversion failed: %s\n", SDL_GetError());
         SDL_free(cvt.buf);
         SDL_FreeWAV(data);
         SDL_Quit();
@@ -75,7 +79,7 @@ main(int argc, char **argv)
     /* write out a WAV header... */
     io = SDL_RWFromFile(argv[2], "wb");
     if (io == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "fopen('%s') failed: %s\n", argv[2], SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "fopen('%s') failed: %s\n", argv[2], SDL_GetError());
         SDL_free(cvt.buf);
         SDL_FreeWAV(data);
         SDL_Quit();
@@ -102,7 +106,7 @@ main(int argc, char **argv)
     SDL_RWwrite(io, cvt.buf, cvt.len_cvt, 1);
 
     if (SDL_RWclose(io) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "fclose('%s') failed: %s\n", argv[2], SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "fclose('%s') failed: %s\n", argv[2], SDL_GetError());
         SDL_free(cvt.buf);
         SDL_FreeWAV(data);
         SDL_Quit();

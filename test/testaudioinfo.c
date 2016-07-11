@@ -18,24 +18,28 @@ print_devices(int iscapture)
     const char *typestr = ((iscapture) ? "capture" : "output");
     int n = SDL_GetNumAudioDevices(iscapture);
 
-    SDL_Log("%s devices:\n", typestr);
+    SDLTest_Log("%s devices:\n", typestr);
 
     if (n == -1)
-        SDL_Log("  Driver can't detect specific %s devices.\n\n", typestr);
+        SDLTest_Log("  Driver can't detect specific %s devices.\n\n", typestr);
     else if (n == 0)
-        SDL_Log("  No %s devices found.\n\n", typestr);
+        SDLTest_Log("  No %s devices found.\n\n", typestr);
     else {
         int i;
         for (i = 0; i < n; i++) {
-            SDL_Log("  %s\n", SDL_GetAudioDeviceName(i, iscapture));
+            SDLTest_Log("  %s\n", SDL_GetAudioDeviceName(i, iscapture));
         }
-        SDL_Log("\n");
+        SDLTest_Log("\n");
     }
 }
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char **argv)
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int n;
 
     /* Enable standard application logging */
@@ -43,24 +47,24 @@ main(int argc, char **argv)
 
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return (1);
     }
 
     /* Print available audio drivers */
     n = SDL_GetNumAudioDrivers();
     if (n == 0) {
-        SDL_Log("No built-in audio drivers\n\n");
+        SDLTest_Log("No built-in audio drivers\n\n");
     } else {
         int i;
-        SDL_Log("Built-in audio drivers:\n");
+        SDLTest_Log("Built-in audio drivers:\n");
         for (i = 0; i < n; ++i) {
-            SDL_Log("  %s\n", SDL_GetAudioDriver(i));
+            SDLTest_Log("  %s\n", SDL_GetAudioDriver(i));
         }
-        SDL_Log("\n");
+        SDLTest_Log("\n");
     }
 
-    SDL_Log("Using audio driver: %s\n\n", SDL_GetCurrentAudioDriver());
+    SDLTest_Log("Using audio driver: %s\n\n", SDL_GetCurrentAudioDriver());
 
     print_devices(0);
     print_devices(1);

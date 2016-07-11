@@ -21,6 +21,8 @@
 #endif
 
 #include "SDL_test_common.h"
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
 
 #define DEFAULT_PTSIZE  30
 #define DEFAULT_FONT    "/System/Library/Fonts/华文细黑.ttf"
@@ -80,7 +82,7 @@ char *utf8_advance(char *p, size_t distance)
 
 void usage()
 {
-    SDL_Log("usage: testime [--font fontfile]\n");
+    SDLTest_Log("usage: testime [--font fontfile]\n");
     exit(0);
 }
 
@@ -206,8 +208,12 @@ void Redraw() {
         SDL_RenderPresent(renderer);
     }
 }
-
+#ifdef main
+#undef main
+#endif
 int main(int argc, char *argv[]) {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i, done;
     SDL_Event event;
     const char *fontname = DEFAULT_FONT;
@@ -217,6 +223,8 @@ int main(int argc, char *argv[]) {
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -256,12 +264,12 @@ int main(int argc, char *argv[]) {
     font = TTF_OpenFont(fontname, DEFAULT_PTSIZE);
     if (! font)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find font: %s\n", TTF_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find font: %s\n", TTF_GetError());
         exit(-1);
     }
 #endif
 
-    SDL_Log("Using font: %s\n", fontname);
+    SDLTest_Log("Using font: %s\n", fontname);
     atexit(SDL_Quit);
 
     InitInput();
@@ -283,6 +291,9 @@ int main(int argc, char *argv[]) {
                 case SDL_KEYDOWN: {
                     switch (event.key.keysym.sym)
                     {
+						case SDLK_f:
+							done = 1;
+							break;
                         case SDLK_RETURN:
                              text[0]=0x00;
                              Redraw();
@@ -326,7 +337,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
 
-                    SDL_Log("Keyboard: scancode 0x%08X = %s, keycode 0x%08X = %s\n",
+                    SDLTest_Log("Keyboard: scancode 0x%08X = %s, keycode 0x%08X = %s\n",
                             event.key.keysym.scancode,
                             SDL_GetScancodeName(event.key.keysym.scancode),
                             event.key.keysym.sym, SDL_GetKeyName(event.key.keysym.sym));
@@ -337,12 +348,12 @@ int main(int argc, char *argv[]) {
                         markedRect.w < 0)
                         break;
 
-                    SDL_Log("Keyboard: text input \"%s\"\n", event.text.text);
+                    SDLTest_Log("Keyboard: text input \"%s\"\n", event.text.text);
 
                     if (SDL_strlen(text) + SDL_strlen(event.text.text) < sizeof(text))
                         SDL_strlcat(text, event.text.text, sizeof(text));
 
-                    SDL_Log("text inputed: %s\n", text);
+                    SDLTest_Log("text inputed: %s\n", text);
 
                     /* After text inputed, we can clear up markedText because it */
                     /* is committed */
@@ -351,7 +362,7 @@ int main(int argc, char *argv[]) {
                     break;
 
                 case SDL_TEXTEDITING:
-                    SDL_Log("text editing \"%s\", selected range (%d, %d)\n",
+                    SDLTest_Log("text editing \"%s\", selected range (%d, %d)\n",
                             event.edit.text, event.edit.start, event.edit.length);
 
                     strcpy(markedText, event.edit.text);

@@ -708,6 +708,12 @@ int audio_openCloseAndGetAudioStatus()
      for (i = 0; i < count; i++) {
        /* Get device name */
        device = (char *)SDL_GetAudioDeviceName(i, 0);
+	   /*add by majunqing for skip the device 1*/
+       const char* ignoreDevice = "VIRTUAL AUDIO W";
+       if(SDL_strcmp(device, ignoreDevice) == 0)
+       {
+		continue;
+       }
        SDLTest_AssertPass("SDL_GetAudioDeviceName(%i,0)", i);
        SDLTest_AssertCheck(device != NULL, "Validate device name is not NULL; got: %s", (device != NULL) ? device : "NULL");
        if (device == NULL) return TEST_ABORTED;
@@ -766,6 +772,14 @@ int audio_lockUnlockOpenAudioDevice()
      for (i = 0; i < count; i++) {
        /* Get device name */
        device = (char *)SDL_GetAudioDeviceName(i, 0);
+	   
+       /*add by majunqing for skip the device 1*/
+       const char* ignoreDevice = "VIRTUAL AUDIO W";
+       if(SDL_strcmp(device, ignoreDevice) == 0)
+       {
+		continue;
+       }
+	   
        SDLTest_AssertPass("SDL_GetAudioDeviceName(%i,0)", i);
        SDLTest_AssertCheck(device != NULL, "Validate device name is not NULL; got: %s", (device != NULL) ? device : "NULL");
        if (device == NULL) return TEST_ABORTED;
@@ -928,6 +942,13 @@ int audio_openCloseAudioDeviceConnected()
      for (i = 0; i < count; i++) {
        /* Get device name */
        device = (char *)SDL_GetAudioDeviceName(i, 0);
+	      /*add by majunqing for skip the device 1*/
+       const char* ignoreDevice = "VIRTUAL AUDIO W";
+       if(SDL_strcmp(device, ignoreDevice) == 0)
+       {
+		continue;
+       }
+	   
        SDLTest_AssertPass("SDL_GetAudioDeviceName(%i,0)", i);
        SDLTest_AssertCheck(device != NULL, "Validate device name is not NULL; got: %s", (device != NULL) ? device : "NULL");
        if (device == NULL) return TEST_ABORTED;

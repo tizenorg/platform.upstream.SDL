@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "SDL.h"
 #include "SDL_test.h"
@@ -30,8 +31,9 @@ quit(int rc)
 }
 
 int
-main(int argc, char *argv[])
+SDL_main(int argc, char *argv[])
 {
+    
     int result;
     int testIterations = 1;
     Uint64 userExecKey = 0;
@@ -80,7 +82,7 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s [--iterations #] [--execKey #] [--seed string] [--filter suite_name|test_name]\n",
+            SDLTest_Log("Usage: %s %s [--iterations #] [--execKey #] [--seed string] [--filter suite_name|test_name]\n",
                     argv[0], SDLTest_CommonUsage(state));
             quit(1);
         }
@@ -120,5 +122,17 @@ main(int argc, char *argv[])
     quit(result);
     return(result);
 }
+#ifdef main
+#undef main
+#endif
+int main(int argc, char*argv[])
+{
+    SDL_tizen_app_init(argc, argv);
+    SDL_SetMainReady();
+    (void)SDL_main(argc, argv);
+    return 0;
+
+}
+
 
 /* vi: set ts=4 sw=4 expandtab: */

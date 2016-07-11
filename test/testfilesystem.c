@@ -13,10 +13,14 @@
 
 #include <stdio.h>
 #include "SDL.h"
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     char *base_path;
     char *pref_path;
 
@@ -24,27 +28,27 @@ main(int argc, char *argv[])
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     if (SDL_Init(0) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init() failed: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init() failed: %s\n", SDL_GetError());
         return 1;
     }
 
     base_path = SDL_GetBasePath();
     if(base_path == NULL){
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't find base path: %s\n",
+      SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't find base path: %s\n",
                    SDL_GetError());
       return 0;
     }
 
-    SDL_Log("base path: '%s'\n", base_path);
+    SDLTest_Log("base path: '%s'\n", base_path);
     SDL_free(base_path);
 
     pref_path = SDL_GetPrefPath("libsdl", "testfilesystem");
     if(pref_path == NULL){
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't find pref path: %s\n",
+      SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't find pref path: %s\n",
                    SDL_GetError());
       return 0;
     }
-    SDL_Log("pref path: '%s'\n", pref_path); 
+    SDLTest_Log("pref path: '%s'\n", pref_path); 
     SDL_free(pref_path);
 
     SDL_Quit();

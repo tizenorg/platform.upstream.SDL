@@ -21,7 +21,8 @@
 
 #include "SDL_test.h"
 #include "SDL_test_common.h"
-
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
 #define NUM_SPRITES    100
 #define MAX_SPEED     1
 
@@ -64,7 +65,7 @@ LoadSprite(const char *file)
     /* Load the sprite image */
     temp = SDL_LoadBMP(file);
     if (temp == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s", file, SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s", file, SDL_GetError());
         return (-1);
     }
     sprite_w = temp->w;
@@ -95,7 +96,7 @@ LoadSprite(const char *file)
         SDL_Renderer *renderer = state->renderers[i];
         sprites[i] = SDL_CreateTextureFromSurface(renderer, temp);
         if (!sprites[i]) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture: %s\n", SDL_GetError());
+            SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture: %s\n", SDL_GetError());
             SDL_FreeSurface(temp);
             return (-1);
         }
@@ -257,20 +258,26 @@ loop()
     }
 #endif
 }
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i;
     Uint32 then, now, frames;
     Uint64 seed;
-    const char *icon = "icon.bmp";
+    const char *icon = "res/icon.bmp";
 
     /* Initialize parameters */
     num_sprites = NUM_SPRITES;
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -332,7 +339,7 @@ main(int argc, char *argv[])
     sprites =
         (SDL_Texture **) SDL_malloc(state->num_windows * sizeof(*sprites));
     if (!sprites) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
         quit(2);
     }
     for (i = 0; i < state->num_windows; ++i) {
@@ -348,7 +355,7 @@ main(int argc, char *argv[])
     positions = (SDL_Rect *) SDL_malloc(num_sprites * sizeof(SDL_Rect));
     velocities = (SDL_Rect *) SDL_malloc(num_sprites * sizeof(SDL_Rect));
     if (!positions || !velocities) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
         quit(2);
     }
 

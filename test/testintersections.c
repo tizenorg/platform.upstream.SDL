@@ -21,7 +21,8 @@
 #endif
 
 #include "SDL_test_common.h"
-
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
 #define SWAP(typ,a,b) do{typ t=a;a=b;b=t;}while(0)
 #define NUM_OBJECTS 100
 
@@ -91,7 +92,7 @@ add_line(int x1, int y1, int x2, int y2)
     if ((x1 == x2) && (y1 == y2))
         return 0;
 
-    SDL_Log("adding line (%d, %d), (%d, %d)\n", x1, y1, x2, y2);
+    SDLTest_Log("adding line (%d, %d), (%d, %d)\n", x1, y1, x2, y2);
     lines[num_lines].x = x1;
     lines[num_lines].y = y1;
     lines[num_lines].w = x2;
@@ -140,7 +141,7 @@ add_rect(int x1, int y1, int x2, int y2)
     if (y1 > y2)
         SWAP(int, y1, y2);
 
-    SDL_Log("adding rect (%d, %d), (%d, %d) [%dx%d]\n", x1, y1, x2, y2,
+    SDLTest_Log("adding rect (%d, %d), (%d, %d) [%dx%d]\n", x1, y1, x2, y2,
            x2 - x1, y2 - y1);
 
     rects[num_rects].x = x1;
@@ -263,10 +264,14 @@ loop()
     }
 #endif
 }
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i;
     Uint32 then, now, frames;
 
@@ -278,6 +283,8 @@ main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -315,7 +322,7 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s [--blend none|blend|add|mod] [--cyclecolor] [--cyclealpha]\n",
+            SDLTest_Log("Usage: %s %s [--blend none|blend|add|mod] [--cyclecolor] [--cyclealpha]\n",
                     argv[0], SDLTest_CommonUsage(state));
             return 1;
         }
@@ -355,7 +362,7 @@ main(int argc, char *argv[])
     now = SDL_GetTicks();
     if (now > then) {
         double fps = ((double) frames * 1000) / (now - then);
-        SDL_Log("%2.2f frames per second\n", fps);
+        SDLTest_Log("%2.2f frames per second\n", fps);
     }
     return 0;
 }

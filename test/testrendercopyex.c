@@ -20,7 +20,8 @@
 #endif
 
 #include "SDL_test_common.h"
-
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
 
 static SDLTest_CommonState *state;
 
@@ -53,7 +54,7 @@ LoadTexture(SDL_Renderer *renderer, char *file, SDL_bool transparent)
     /* Load the sprite image */
     temp = SDL_LoadBMP(file);
     if (temp == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s", file, SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s", file, SDL_GetError());
         return NULL;
     }
 
@@ -84,7 +85,7 @@ LoadTexture(SDL_Renderer *renderer, char *file, SDL_bool transparent)
     /* Create textures from the image */
     texture = SDL_CreateTextureFromSurface(renderer, temp);
     if (!texture) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture: %s\n", SDL_GetError());
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture: %s\n", SDL_GetError());
         SDL_FreeSurface(temp);
         return NULL;
     }
@@ -158,10 +159,14 @@ void loop()
     }
 #endif
 }
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+    SDL_SetMainReady();
     int i;
     int frames;
     Uint32 then, now;
@@ -171,6 +176,8 @@ main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
     if (!state) {
         return 1;
     }
@@ -179,7 +186,7 @@ main(int argc, char *argv[])
 
         consumed = SDLTest_CommonArg(state, i);
         if (consumed == 0) {
-            SDL_Log("Usage: %s %s\n", argv[0], SDLTest_CommonUsage(state));
+            SDLTest_Log("Usage: %s %s\n", argv[0], SDLTest_CommonUsage(state));
             return 1;
         }
         i += consumed;
@@ -194,8 +201,8 @@ main(int argc, char *argv[])
 
         drawstate->window = state->windows[i];
         drawstate->renderer = state->renderers[i];
-        drawstate->sprite = LoadTexture(drawstate->renderer, "icon.bmp", SDL_TRUE);
-        drawstate->background = LoadTexture(drawstate->renderer, "sample.bmp", SDL_FALSE);
+        drawstate->sprite = LoadTexture(drawstate->renderer, "res/icon.bmp", SDL_TRUE);
+        drawstate->background = LoadTexture(drawstate->renderer, "res/sample.bmp", SDL_FALSE);
         if (!drawstate->sprite || !drawstate->background) {
             quit(2);
         }
@@ -221,7 +228,7 @@ main(int argc, char *argv[])
     now = SDL_GetTicks();
     if (now > then) {
         double fps = ((double) frames * 1000) / (now - then);
-        SDL_Log("%2.2f frames per second\n", fps);
+        SDLTest_Log("%2.2f frames per second\n", fps);
     }
 
     SDL_stack_free(drawstates);

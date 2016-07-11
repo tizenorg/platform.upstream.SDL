@@ -24,10 +24,14 @@ widelen(char *data)
     }
     return len;
 }
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     const char *formats[] = {
         "UTF8",
         "UTF-8",
@@ -53,11 +57,11 @@ main(int argc, char *argv[])
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     if (!argv[1]) {
-        argv[1] = "utf8.txt";
+        argv[1] = "res/utf8.txt";
     }
     file = fopen(argv[1], "rb");
     if (!file) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to open %s\n", argv[1]);
+        SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to open %s\n", argv[1]);
         return (1);
     }
 
@@ -72,7 +76,7 @@ main(int argc, char *argv[])
             test[0] = SDL_iconv_string(formats[i], "UCS-4", ucs4, len);
             test[1] = SDL_iconv_string("UCS-4", formats[i], test[0], len);
             if (!test[1] || SDL_memcmp(test[1], ucs4, len) != 0) {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "FAIL: %s\n", formats[i]);
+                SDLTest_LogError(SDL_LOG_CATEGORY_APPLICATION, "FAIL: %s\n", formats[i]);
                 ++errors;
             }
             SDL_free(test[0]);

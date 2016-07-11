@@ -24,10 +24,14 @@ quit(int rc)
     SDLTest_CommonQuit(state);
     exit(rc);
 }
-
+#ifdef main
+#undef main
+#endif
 int
 main(int argc, char *argv[])
 {
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
     int i, done;
     SDL_Event event;
 
@@ -52,7 +56,7 @@ main(int argc, char *argv[])
             consumed = -1;
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s\n", argv[0], SDLTest_CommonUsage(state));
+            SDLTest_Log("Usage: %s %s\n", argv[0], SDLTest_CommonUsage(state));
             quit(1);
         }
         i += consumed;
@@ -79,7 +83,7 @@ main(int argc, char *argv[])
 
             if (event.type == SDL_DROPFILE) {
                 char *dropped_filedir = event.drop.file;
-                SDL_Log("File dropped on window: %s", dropped_filedir);
+                SDLTest_Log("File dropped on window: %s", dropped_filedir);
                 SDL_free(dropped_filedir);
             }
         }

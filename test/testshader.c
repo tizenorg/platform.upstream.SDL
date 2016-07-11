@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
+  Copyright (r) 1997-2016 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -9,492 +9,732 @@
   including commercial applications, and to alter it and redistribute it
   freely.
 */
-/* This is a simple example of using GLSL shaders with SDL */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
-#include "SDL.h"
-
-#ifdef HAVE_OPENGL
-
-#include "SDL_opengl.h"
-
-
-static SDL_bool shaders_supported;
-static int      current_shader = 0;
-
-enum {
-    SHADER_COLOR,
-    SHADER_TEXTURE,
-    SHADER_TEXCOORDS,
-    NUM_SHADERS
-};
-
-typedef struct {
-    GLhandleARB program;
-    GLhandleARB vert_shader;
-    GLhandleARB frag_shader;
-    const char *vert_source;
-    const char *frag_source;
-} ShaderData;
-
-static ShaderData shaders[NUM_SHADERS] = {
-
-    /* SHADER_COLOR */
-    { 0, 0, 0,
-        /* vertex shader */
-"varying vec4 v_color;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
-"    v_color = gl_Color;\n"
-"}",
-        /* fragment shader */
-"varying vec4 v_color;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_FragColor = v_color;\n"
-"}"
-    },
-
-    /* SHADER_TEXTURE */
-    { 0, 0, 0,
-        /* vertex shader */
-"varying vec4 v_color;\n"
-"varying vec2 v_texCoord;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
-"    v_color = gl_Color;\n"
-"    v_texCoord = vec2(gl_MultiTexCoord0);\n"
-"}",
-        /* fragment shader */
-"varying vec4 v_color;\n"
-"varying vec2 v_texCoord;\n"
-"uniform sampler2D tex0;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_FragColor = texture2D(tex0, v_texCoord) * v_color;\n"
-"}"
-    },
-
-    /* SHADER_TEXCOORDS */
-    { 0, 0, 0,
-        /* vertex shader */
-"varying vec2 v_texCoord;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
-"    v_texCoord = vec2(gl_MultiTexCoord0);\n"
-"}",
-        /* fragment shader */
-"varying vec2 v_texCoord;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    vec4 color;\n"
-"    vec2 delta;\n"
-"    float dist;\n"
-"\n"
-"    delta = vec2(0.5, 0.5) - v_texCoord;\n"
-"    dist = dot(delta, delta);\n"
-"\n"
-"    color.r = v_texCoord.x;\n"
-"    color.g = v_texCoord.x * v_texCoord.y;\n"
-"    color.b = v_texCoord.y;\n"
-"    color.a = 1.0 - (dist * 4.0);\n"
-"    gl_FragColor = color;\n"
-"}"
-    },
-};
-
-static PFNGLATTACHOBJECTARBPROC glAttachObjectARB;
-static PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
-static PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
-static PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
-static PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
-static PFNGLGETINFOLOGARBPROC glGetInfoLogARB;
-static PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB;
-static PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
-static PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
-static PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
-static PFNGLUNIFORM1IARBPROC glUniform1iARB;
-static PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
-
-static SDL_bool CompileShader(GLhandleARB shader, const char *source)
-{
-    GLint status;
-
-    glShaderSourceARB(shader, 1, &source, NULL);
-    glCompileShaderARB(shader);
-    glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
-    if (status == 0) {
-        GLint length;
-        char *info;
-
-        glGetObjectParameterivARB(shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-        info = SDL_stack_alloc(char, length+1);
-        glGetInfoLogARB(shader, length, NULL, info);
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to compile shader:\n%s\n%s", source, info);
-        SDL_stack_free(info);
-
-        return SDL_FALSE;
-    } else {
-        return SDL_TRUE;
-    }
-}
-
-static SDL_bool CompileShaderProgram(ShaderData *data)
-{
-    const int num_tmus_bound = 4;
-    int i;
-    GLint location;
-
-    glGetError();
-
-    /* Create one program object to rule them all */
-    data->program = glCreateProgramObjectARB();
-
-    /* Create the vertex shader */
-    data->vert_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-    if (!CompileShader(data->vert_shader, data->vert_source)) {
-        return SDL_FALSE;
-    }
-
-    /* Create the fragment shader */
-    data->frag_shader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-    if (!CompileShader(data->frag_shader, data->frag_source)) {
-        return SDL_FALSE;
-    }
-
-    /* ... and in the darkness bind them */
-    glAttachObjectARB(data->program, data->vert_shader);
-    glAttachObjectARB(data->program, data->frag_shader);
-    glLinkProgramARB(data->program);
-
-    /* Set up some uniform variables */
-    glUseProgramObjectARB(data->program);
-    for (i = 0; i < num_tmus_bound; ++i) {
-        char tex_name[5];
-        SDL_snprintf(tex_name, SDL_arraysize(tex_name), "tex%d", i);
-        location = glGetUniformLocationARB(data->program, tex_name);
-        if (location >= 0) {
-            glUniform1iARB(location, i);
-        }
-    }
-    glUseProgramObjectARB(0);
-
-    return (glGetError() == GL_NO_ERROR) ? SDL_TRUE : SDL_FALSE;
-}
-
-static void DestroyShaderProgram(ShaderData *data)
-{
-    if (shaders_supported) {
-        glDeleteObjectARB(data->vert_shader);
-        glDeleteObjectARB(data->frag_shader);
-        glDeleteObjectARB(data->program);
-    }
-}
-
-static SDL_bool InitShaders()
-{
-    int i;
-
-    /* Check for shader support */
-    shaders_supported = SDL_FALSE;
-    if (SDL_GL_ExtensionSupported("GL_ARB_shader_objects") &&
-        SDL_GL_ExtensionSupported("GL_ARB_shading_language_100") &&
-        SDL_GL_ExtensionSupported("GL_ARB_vertex_shader") &&
-        SDL_GL_ExtensionSupported("GL_ARB_fragment_shader")) {
-        glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC) SDL_GL_GetProcAddress("glAttachObjectARB");
-        glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC) SDL_GL_GetProcAddress("glCompileShaderARB");
-        glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC) SDL_GL_GetProcAddress("glCreateProgramObjectARB");
-        glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC) SDL_GL_GetProcAddress("glCreateShaderObjectARB");
-        glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC) SDL_GL_GetProcAddress("glDeleteObjectARB");
-        glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC) SDL_GL_GetProcAddress("glGetInfoLogARB");
-        glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC) SDL_GL_GetProcAddress("glGetObjectParameterivARB");
-        glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC) SDL_GL_GetProcAddress("glGetUniformLocationARB");
-        glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC) SDL_GL_GetProcAddress("glLinkProgramARB");
-        glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC) SDL_GL_GetProcAddress("glShaderSourceARB");
-        glUniform1iARB = (PFNGLUNIFORM1IARBPROC) SDL_GL_GetProcAddress("glUniform1iARB");
-        glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC) SDL_GL_GetProcAddress("glUseProgramObjectARB");
-        if (glAttachObjectARB &&
-            glCompileShaderARB &&
-            glCreateProgramObjectARB &&
-            glCreateShaderObjectARB &&
-            glDeleteObjectARB &&
-            glGetInfoLogARB &&
-            glGetObjectParameterivARB &&
-            glGetUniformLocationARB &&
-            glLinkProgramARB &&
-            glShaderSourceARB &&
-            glUniform1iARB &&
-            glUseProgramObjectARB) {
-            shaders_supported = SDL_TRUE;
-        }
-    }
-
-    if (!shaders_supported) {
-        return SDL_FALSE;
-    }
-
-    /* Compile all the shaders */
-    for (i = 0; i < NUM_SHADERS; ++i) {
-        if (!CompileShaderProgram(&shaders[i])) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to compile shader!\n");
-            return SDL_FALSE;
-        }
-    }
-
-    /* We're done! */
-    return SDL_TRUE;
-}
-
-static void QuitShaders()
-{
-    int i;
-
-    for (i = 0; i < NUM_SHADERS; ++i) {
-        DestroyShaderProgram(&shaders[i]);
-    }
-}
-
-/* Quick utility function for texture creation */
-static int
-power_of_two(int input)
-{
-    int value = 1;
-
-    while (value < input) {
-        value <<= 1;
-    }
-    return value;
-}
-
-GLuint
-SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
-{
-    GLuint texture;
-    int w, h;
-    SDL_Surface *image;
-    SDL_Rect area;
-    SDL_BlendMode saved_mode;
-
-    /* Use the surface width and height expanded to powers of 2 */
-    w = power_of_two(surface->w);
-    h = power_of_two(surface->h);
-    texcoord[0] = 0.0f;         /* Min X */
-    texcoord[1] = 0.0f;         /* Min Y */
-    texcoord[2] = (GLfloat) surface->w / w;     /* Max X */
-    texcoord[3] = (GLfloat) surface->h / h;     /* Max Y */
-
-    image = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32,
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN     /* OpenGL RGBA masks */
-                                 0x000000FF,
-                                 0x0000FF00, 0x00FF0000, 0xFF000000
-#else
-                                 0xFF000000,
-                                 0x00FF0000, 0x0000FF00, 0x000000FF
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
 #endif
-        );
-    if (image == NULL) {
-        return 0;
-    }
 
-    /* Save the alpha blending attributes */
-    SDL_GetSurfaceBlendMode(surface, &saved_mode);
-    SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE);
+#include "SDL_test_common.h"
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 1280
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(__NACL__) || defined(__TIZEN__)
+#define HAVE_OPENGLES2
+#endif
 
-    /* Copy the surface into the GL texture image */
-    area.x = 0;
-    area.y = 0;
-    area.w = surface->w;
-    area.h = surface->h;
-    SDL_BlitSurface(surface, &area, image, &area);
+#define HAVE_OPENGLES2
 
-    /* Restore the alpha blending attributes */
-    SDL_SetSurfaceBlendMode(surface, saved_mode);
+#ifdef HAVE_OPENGLES2
 
-    /* Create an OpenGL texture for the image */
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
-    SDL_FreeSurface(image);     /* No longer needed */
+#include "SDL_opengles2.h"
 
-    return texture;
+typedef struct GLES2_Context
+{
+#define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
+#include "SDL_gles2funcs.h"
+#undef SDL_PROC
+} GLES2_Context;
+
+
+static SDLTest_CommonState *state;
+static SDL_GLContext *context = NULL;
+static int depth = 16;
+static GLES2_Context ctx;
+
+static int LoadContext(GLES2_Context * data)
+{
+#if SDL_VIDEO_DRIVER_UIKIT
+#define __SDL_NOGETPROCADDR__
+#elif SDL_VIDEO_DRIVER_ANDROID
+#define __SDL_NOGETPROCADDR__
+#elif SDL_VIDEO_DRIVER_PANDORA
+#define __SDL_NOGETPROCADDR__
+#endif
+
+#if defined __SDL_NOGETPROCADDR__
+#define SDL_PROC(ret,func,params) data->func=func;
+#else
+#define SDL_PROC(ret,func,params) \
+    do { \
+        data->func = SDL_GL_GetProcAddress(#func); \
+        if ( ! data->func ) { \
+            return SDL_SetError("Couldn't load GLES2 function %s: %s\n", #func, SDL_GetError()); \
+        } \
+    } while ( 0 );
+#endif /* __SDL_NOGETPROCADDR__ */
+
+#include "SDL_gles2funcs.h"
+#undef SDL_PROC
+    return 0;
 }
 
-/* A general OpenGL initialization function.    Sets all of the initial parameters. */
-void InitGL(int Width, int Height)                    /* We call this right after our OpenGL window is created. */
+/* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
+static void
+quit(int rc)
 {
-    GLdouble aspect;
+    int i;
 
-    glViewport(0, 0, Width, Height);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);        /* This Will Clear The Background Color To Black */
-    glClearDepth(1.0);                /* Enables Clearing Of The Depth Buffer */
-    glDepthFunc(GL_LESS);                /* The Type Of Depth Test To Do */
-    glEnable(GL_DEPTH_TEST);            /* Enables Depth Testing */
-    glShadeModel(GL_SMOOTH);            /* Enables Smooth Color Shading */
+    if (context != NULL) {
+        for (i = 0; i < state->num_windows; i++) {
+            if (context[i]) {
+                SDL_GL_DeleteContext(context[i]);
+            }
+        }
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();                /* Reset The Projection Matrix */
+        SDL_free(context);
+    }
 
-    aspect = (GLdouble)Width / Height;
-    glOrtho(-3.0, 3.0, -3.0 / aspect, 3.0 / aspect, 0.0, 1.0);
-
-    glMatrixMode(GL_MODELVIEW);
+    SDLTest_CommonQuit(state);
+    exit(rc);
 }
 
-/* The main drawing function. */
-void DrawGLScene(SDL_Window *window, GLuint texture, GLfloat * texcoord)
+#define GL_CHECK(x) \
+        x; \
+        { \
+          GLenum glError = ctx.glGetError(); \
+          if(glError != GL_NO_ERROR) { \
+            SDLTest_Log("glGetError() = %i (0x%.8x) at line %i\n", glError, glError, __LINE__); \
+            quit(1); \
+          } \
+        }
+
+/* 
+ * Simulates desktop's glRotatef. The matrix is returned in column-major 
+ * order. 
+ */
+static void
+rotate_matrix(float angle, float x, float y, float z, float *r)
 {
-    /* Texture coordinate lookup, to make it simple */
-    enum {
-        MINX,
-        MINY,
-        MAXX,
-        MAXY
-    };
+    float radians, c, s, c1, u[3], length;
+    int i, j;
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);        /* Clear The Screen And The Depth Buffer */
-    glLoadIdentity();                /* Reset The View */
+    radians = (float)(angle * M_PI) / 180.0f;
 
-    glTranslatef(-1.5f,0.0f,0.0f);        /* Move Left 1.5 Units */
+    c = SDL_cosf(radians);
+    s = SDL_sinf(radians);
 
-    /* draw a triangle (in smooth coloring mode) */
-    glBegin(GL_POLYGON);                /* start drawing a polygon */
-    glColor3f(1.0f,0.0f,0.0f);            /* Set The Color To Red */
-    glVertex3f( 0.0f, 1.0f, 0.0f);        /* Top */
-    glColor3f(0.0f,1.0f,0.0f);            /* Set The Color To Green */
-    glVertex3f( 1.0f,-1.0f, 0.0f);        /* Bottom Right */
-    glColor3f(0.0f,0.0f,1.0f);            /* Set The Color To Blue */
-    glVertex3f(-1.0f,-1.0f, 0.0f);        /* Bottom Left */
-    glEnd();                    /* we're done with the polygon (smooth color interpolation) */
+    c1 = 1.0f - SDL_cosf(radians);
 
-    glTranslatef(3.0f,0.0f,0.0f);         /* Move Right 3 Units */
+    length = (float)SDL_sqrt(x * x + y * y + z * z);
 
-    /* Enable blending */
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    u[0] = x / length;
+    u[1] = y / length;
+    u[2] = z / length;
 
-    /* draw a textured square (quadrilateral) */
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glColor3f(1.0f,1.0f,1.0f);
-    if (shaders_supported) {
-        glUseProgramObjectARB(shaders[current_shader].program);
+    for (i = 0; i < 16; i++) {
+        r[i] = 0.0;
     }
 
-    glBegin(GL_QUADS);                /* start drawing a polygon (4 sided) */
-    glTexCoord2f(texcoord[MINX], texcoord[MINY]);
-    glVertex3f(-1.0f, 1.0f, 0.0f);        /* Top Left */
-    glTexCoord2f(texcoord[MAXX], texcoord[MINY]);
-    glVertex3f( 1.0f, 1.0f, 0.0f);        /* Top Right */
-    glTexCoord2f(texcoord[MAXX], texcoord[MAXY]);
-    glVertex3f( 1.0f,-1.0f, 0.0f);        /* Bottom Right */
-    glTexCoord2f(texcoord[MINX], texcoord[MAXY]);
-    glVertex3f(-1.0f,-1.0f, 0.0f);        /* Bottom Left */
-    glEnd();                    /* done with the polygon */
+    r[15] = 1.0;
 
-    if (shaders_supported) {
-        glUseProgramObjectARB(0);
+    for (i = 0; i < 3; i++) {
+        r[i * 4 + (i + 1) % 3] = u[(i + 2) % 3] * s;
+        r[i * 4 + (i + 2) % 3] = -u[(i + 1) % 3] * s;
     }
-    glDisable(GL_TEXTURE_2D);
 
-    /* swap buffers to display, since we're double buffered. */
-    SDL_GL_SwapWindow(window);
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            r[i * 4 + j] += c1 * u[i] * u[j] + (i == j ? c : 0.0f);
+        }
+    }
 }
 
-int main(int argc, char **argv)
+/* 
+ * Simulates gluPerspectiveMatrix 
+ */
+static void 
+perspective_matrix(float fovy, float aspect, float znear, float zfar, float *r)
 {
-    int done;
-    SDL_Window *window;
-    SDL_Surface *surface;
-    GLuint texture;
-    GLfloat texcoords[4];
+    int i;
+    float f;
 
-    /* Enable standard application logging */
-    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+    f = 1.0f/SDL_tanf(fovy * 0.5f);
 
-    /* Initialize SDL for video output */
-    if ( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize SDL: %s\n", SDL_GetError());
-        exit(1);
+    for (i = 0; i < 16; i++) {
+        r[i] = 0.0;
     }
 
-    /* Create a 640x480 OpenGL screen */
-    window = SDL_CreateWindow( "Shader Demo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL );
-    if ( !window ) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL window: %s\n", SDL_GetError());
-        SDL_Quit();
-        exit(2);
-    }
+    r[0] = f / aspect;
+    r[5] = f;
+    r[10] = (znear + zfar) / (znear - zfar);
+    r[11] = -1.0f;
+    r[14] = (2.0f * znear * zfar) / (znear - zfar);
+    r[15] = 0.0f;
+}
 
-    if ( !SDL_GL_CreateContext(window)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context: %s\n", SDL_GetError());
-        SDL_Quit();
-        exit(2);
-    }
+/* 
+ * Multiplies lhs by rhs and writes out to r. All matrices are 4x4 and column
+ * major. In-place multiplication is supported.
+ */
+static void
+multiply_matrix(float *lhs, float *rhs, float *r)
+{
+    int i, j, k;
+    float tmp[16];
 
-    surface = SDL_LoadBMP("icon.bmp");
-    if ( ! surface ) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load icon.bmp: %s\n", SDL_GetError());
-        SDL_Quit();
-        exit(3);
-    }
-    texture = SDL_GL_LoadTexture(surface, texcoords);
-    SDL_FreeSurface(surface);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            tmp[j * 4 + i] = 0.0;
 
-    /* Loop, drawing and checking events */
-    InitGL(640, 480);
-    if (InitShaders()) {
-        SDL_Log("Shaders supported, press SPACE to cycle them.\n");
-    } else {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Shaders not supported!\n");
-    }
-    done = 0;
-    while ( ! done ) {
-        DrawGLScene(window, texture, texcoords);
-
-        /* This could go in a separate function */
-        { SDL_Event event;
-            while ( SDL_PollEvent(&event) ) {
-                if ( event.type == SDL_QUIT ) {
-                    done = 1;
-                }
-                if ( event.type == SDL_KEYDOWN ) {
-                    if ( event.key.keysym.sym == SDLK_SPACE ) {
-                        current_shader = (current_shader + 1) % NUM_SHADERS;
-                    }
-                    if ( event.key.keysym.sym == SDLK_ESCAPE ) {
-                        done = 1;
-                    }
-                }
+            for (k = 0; k < 4; k++) {
+                tmp[j * 4 + i] += lhs[k * 4 + i] * rhs[j * 4 + k];
             }
         }
     }
-    QuitShaders();
-    SDL_Quit();
-    return 1;
+
+    for (i = 0; i < 16; i++) {
+        r[i] = tmp[i];
+    }
 }
 
-#else /* HAVE_OPENGL */
+/* 
+ * Create shader, load in source, compile, dump debug as necessary.
+ *
+ * shader: Pointer to return created shader ID.
+ * source: Passed-in shader source code.
+ * shader_type: Passed to GL, e.g. GL_VERTEX_SHADER.
+ */
+void 
+process_shader(GLuint *shader, const char * source, GLint shader_type)
+{
+    GLint status = GL_FALSE;
+    const char *shaders[1] = { NULL };
+    char buffer[1024];
+    GLsizei length;
+
+    /* Create shader and load into GL. */
+    *shader = GL_CHECK(ctx.glCreateShader(shader_type));
+
+    shaders[0] = source;
+
+    GL_CHECK(ctx.glShaderSource(*shader, 1, shaders, NULL));
+
+    /* Clean up shader source. */
+    shaders[0] = NULL;
+
+    /* Try compiling the shader. */
+    GL_CHECK(ctx.glCompileShader(*shader));
+    GL_CHECK(ctx.glGetShaderiv(*shader, GL_COMPILE_STATUS, &status));
+
+    /* Dump debug info (source and log) if compilation failed. */
+    if(status != GL_TRUE) {
+        ctx.glGetProgramInfoLog(*shader, sizeof(buffer), &length, &buffer[0]);
+        buffer[length] = '\0';
+        SDLTest_Log("Shader compilation failed: %s", buffer);fflush(stderr);
+        quit(-1);
+    }
+}
+
+/* 3D data. Vertex range -0.5..0.5 in all axes.
+* Z -0.5 is near, 0.5 is far. */
+const float _vertices[] =
+{
+    /* Front face. */
+    /* Bottom left */
+    -0.5,  0.5, -0.5,
+    0.5, -0.5, -0.5,
+    -0.5, -0.5, -0.5,
+    /* Top right */
+    -0.5,  0.5, -0.5,
+    0.5,  0.5, -0.5,
+    0.5, -0.5, -0.5,
+    /* Left face */
+    /* Bottom left */
+    -0.5,  0.5,  0.5,
+    -0.5, -0.5, -0.5,
+    -0.5, -0.5,  0.5,
+    /* Top right */
+    -0.5,  0.5,  0.5,
+    -0.5,  0.5, -0.5,
+    -0.5, -0.5, -0.5,
+    /* Top face */
+    /* Bottom left */
+    -0.5,  0.5,  0.5,
+    0.5,  0.5, -0.5,
+    -0.5,  0.5, -0.5,
+    /* Top right */
+    -0.5,  0.5,  0.5,
+    0.5,  0.5,  0.5,
+    0.5,  0.5, -0.5,
+    /* Right face */
+    /* Bottom left */
+    0.5,  0.5, -0.5,
+    0.5, -0.5,  0.5,
+    0.5, -0.5, -0.5,
+    /* Top right */
+    0.5,  0.5, -0.5,
+    0.5,  0.5,  0.5,
+    0.5, -0.5,  0.5,
+    /* Back face */
+    /* Bottom left */
+    0.5,  0.5,  0.5,
+    -0.5, -0.5,  0.5,
+    0.5, -0.5,  0.5,
+    /* Top right */
+    0.5,  0.5,  0.5,
+    -0.5,  0.5,  0.5,
+    -0.5, -0.5,  0.5,
+    /* Bottom face */
+    /* Bottom left */
+    -0.5, -0.5, -0.5,
+    0.5, -0.5,  0.5,
+    -0.5, -0.5,  0.5,
+    /* Top right */
+    -0.5, -0.5, -0.5,
+    0.5, -0.5, -0.5,
+    0.5, -0.5,  0.5,
+};
+
+const float _colors[] =
+{
+    /* Front face */
+    /* Bottom left */
+    1.0, 0.0, 0.0, /* red */
+    0.0, 0.0, 1.0, /* blue */
+    0.0, 1.0, 0.0, /* green */
+    /* Top right */
+    1.0, 0.0, 0.0, /* red */
+    1.0, 1.0, 0.0, /* yellow */
+    0.0, 0.0, 1.0, /* blue */
+    /* Left face */
+    /* Bottom left */
+    1.0, 1.0, 1.0, /* white */
+    0.0, 1.0, 0.0, /* green */
+    0.0, 1.0, 1.0, /* cyan */
+    /* Top right */
+    1.0, 1.0, 1.0, /* white */
+    1.0, 0.0, 0.0, /* red */
+    0.0, 1.0, 0.0, /* green */
+    /* Top face */
+    /* Bottom left */
+    1.0, 1.0, 1.0, /* white */
+    1.0, 1.0, 0.0, /* yellow */
+    1.0, 0.0, 0.0, /* red */
+    /* Top right */
+    1.0, 1.0, 1.0, /* white */
+    0.0, 0.0, 0.0, /* black */
+    1.0, 1.0, 0.0, /* yellow */
+    /* Right face */
+    /* Bottom left */
+    1.0, 1.0, 0.0, /* yellow */
+    1.0, 0.0, 1.0, /* magenta */
+    0.0, 0.0, 1.0, /* blue */
+    /* Top right */
+    1.0, 1.0, 0.0, /* yellow */
+    0.0, 0.0, 0.0, /* black */
+    1.0, 0.0, 1.0, /* magenta */
+    /* Back face */
+    /* Bottom left */
+    0.0, 0.0, 0.0, /* black */
+    0.0, 1.0, 1.0, /* cyan */
+    1.0, 0.0, 1.0, /* magenta */
+    /* Top right */
+    0.0, 0.0, 0.0, /* black */
+    1.0, 1.0, 1.0, /* white */
+    0.0, 1.0, 1.0, /* cyan */
+    /* Bottom face */
+    /* Bottom left */
+    0.0, 1.0, 0.0, /* green */
+    1.0, 0.0, 1.0, /* magenta */
+    0.0, 1.0, 1.0, /* cyan */
+    /* Top right */
+    0.0, 1.0, 0.0, /* green */
+    0.0, 0.0, 1.0, /* blue */
+    1.0, 0.0, 1.0, /* magenta */
+};
+
+const char* _shader_vert_src = 
+" attribute vec4 av4position; "
+" attribute vec3 av3color; "
+" uniform mat4 mvp; "
+" varying vec3 vv3color; "
+" void main() { "
+"    vv3color = av3color; "
+"    gl_Position = mvp * av4position; "
+" } ";
+
+const char* _shader_frag_src = 
+" precision lowp float; "
+" varying vec3 vv3color; "
+" void main() { "
+"    gl_FragColor = vec4(vv3color, 1.0); "
+" } ";
+
+typedef struct shader_data
+{
+    GLuint shader_program, shader_frag, shader_vert;
+
+    GLint attr_position;
+    GLint attr_color, attr_mvp;
+
+    int angle_x, angle_y, angle_z;
+
+} shader_data;
+
+static void
+Render(unsigned int width, unsigned int height, shader_data* data)
+{
+    float matrix_rotate[16], matrix_modelview[16], matrix_perspective[16], matrix_mvp[16];
+
+    /* 
+    * Do some rotation with Euler angles. It is not a fixed axis as
+    * quaterions would be, but the effect is cool. 
+    */
+    rotate_matrix((float)data->angle_x, 1.0f, 0.0f, 0.0f, matrix_modelview);
+    rotate_matrix((float)data->angle_y, 0.0f, 1.0f, 0.0f, matrix_rotate);
+
+    multiply_matrix(matrix_rotate, matrix_modelview, matrix_modelview);
+
+    rotate_matrix((float)data->angle_z, 0.0f, 1.0f, 0.0f, matrix_rotate);
+
+    multiply_matrix(matrix_rotate, matrix_modelview, matrix_modelview);
+
+    /* Pull the camera back from the cube */
+    matrix_modelview[14] -= 2.5;
+
+    perspective_matrix(45.0f, (float)width/height, 0.01f, 100.0f, matrix_perspective);
+    multiply_matrix(matrix_perspective, matrix_modelview, matrix_mvp);
+
+    GL_CHECK(ctx.glUniformMatrix4fv(data->attr_mvp, 1, GL_FALSE, matrix_mvp));
+
+    data->angle_x += 3;
+    data->angle_y += 2;
+    data->angle_z += 1;
+
+    if(data->angle_x >= 360) data->angle_x -= 360;
+    if(data->angle_x < 0) data->angle_x += 360;
+    if(data->angle_y >= 360) data->angle_y -= 360;
+    if(data->angle_y < 0) data->angle_y += 360;
+    if(data->angle_z >= 360) data->angle_z -= 360;
+    if(data->angle_z < 0) data->angle_z += 360;
+
+    GL_CHECK(ctx.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+    GL_CHECK(ctx.glDrawArrays(GL_TRIANGLES, 0, 36));
+}
+
+int done;
+Uint32 frames;
+shader_data *datas;
+
+void loop()
+{
+    SDL_Event event;
+    int i;
+    int status;
+
+    /* Check for events */
+    ++frames;
+    while (SDL_PollEvent(&event) && !done) {
+        switch (event.type) {
+        case SDL_WINDOWEVENT:
+            switch (event.window.event) {
+                case SDL_WINDOWEVENT_RESIZED:
+                    for (i = 0; i < state->num_windows; ++i) {
+                        if (event.window.windowID == SDL_GetWindowID(state->windows[i])) {
+                            int w, h;
+                            status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
+                            if (status) {
+                                SDLTest_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
+                                break;
+                            }
+                            /* Change view port to the new window dimensions */
+                            SDL_GL_GetDrawableSize(state->windows[i], &w, &h);
+                            ctx.glViewport(0, 0, w, h);
+                            state->window_w = event.window.data1;
+                            state->window_h = event.window.data2;
+                            /* Update window content */
+                            Render(event.window.data1, event.window.data2, &datas[i]);
+                            SDL_GL_SwapWindow(state->windows[i]);
+                            break;
+                        }
+                    }
+                    break;
+            }
+        }
+        SDLTest_CommonEvent(state, &event, &done);
+    }
+    if (!done) {
+      for (i = 0; i < state->num_windows; ++i) {
+          status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
+          if (status) {
+              SDLTest_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
+
+              /* Continue for next window */
+              continue;
+          }
+          Render(state->window_w, state->window_h, &datas[i]);
+          SDL_GL_SwapWindow(state->windows[i]);
+      }
+    }
+#ifdef __EMSCRIPTEN__
+    else {
+        emscripten_cancel_main_loop();
+    }
+#endif
+}
+#ifdef main
+#undef main
+#endif
+int
+main(int argc, char *argv[])
+{
+	SDL_tizen_app_init(argc, argv);
+	SDL_SetMainReady();
+    int fsaa, accel;
+    int value;
+    int i;
+    SDL_DisplayMode mode;
+    Uint32 then, now;
+    int status;
+    shader_data *data;
+
+    /* Initialize parameters */
+    fsaa = 0;
+    accel = 0;
+
+    /* Initialize test framework */
+    state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state->window_w = WINDOW_WIDTH;
+    state->window_h = WINDOW_HEIGHT;
+    if (!state) {
+        return 1;
+    }
+    for (i = 1; i < argc;) {
+        int consumed;
+
+        consumed = SDLTest_CommonArg(state, i);
+        if (consumed == 0) {
+            if (SDL_strcasecmp(argv[i], "--fsaa") == 0) {
+                ++fsaa;
+                consumed = 1;
+            } else if (SDL_strcasecmp(argv[i], "--accel") == 0) {
+                ++accel;
+                consumed = 1;
+            } else if (SDL_strcasecmp(argv[i], "--zdepth") == 0) {
+                i++;
+                if (!argv[i]) {
+                    consumed = -1;
+                } else {
+                    depth = SDL_atoi(argv[i]);
+                    consumed = 1;
+                }
+            } else {
+                consumed = -1;
+            }
+        }
+        if (consumed < 0) {
+            SDLTest_Log ("Usage: %s %s [--fsaa] [--accel] [--zdepth %%d]\n", argv[0],
+                    SDLTest_CommonUsage(state));
+            quit(1);
+        }
+        i += consumed;
+    }
+
+    /* Set OpenGL parameters */
+    state->window_flags |= SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS;
+    state->gl_red_size = 5;
+    state->gl_green_size = 5;
+    state->gl_blue_size = 5;
+    state->gl_depth_size = depth;
+    state->gl_major_version = 2;
+    state->gl_minor_version = 0;
+    state->gl_profile_mask = SDL_GL_CONTEXT_PROFILE_ES;
+
+    if (fsaa) {
+        state->gl_multisamplebuffers=1;
+        state->gl_multisamplesamples=fsaa;
+    }
+    if (accel) {
+        state->gl_accelerated=1;
+    }
+    if (!SDLTest_CommonInit(state)) {
+        quit(2);
+        return 0;
+    }
+
+    context = SDL_calloc(state->num_windows, sizeof(context));
+    if (context == NULL) {
+        SDLTest_Log("Out of memory!\n");
+        quit(2);
+    }
+    
+    /* Create OpenGL ES contexts */
+    for (i = 0; i < state->num_windows; i++) {
+        context[i] = SDL_GL_CreateContext(state->windows[i]);
+        if (!context[i]) {
+            SDLTest_Log("SDL_GL_CreateContext(): %s\n", SDL_GetError());
+            quit(2);
+        }
+    }
+
+    /* Important: call this *after* creating the context */
+    if (LoadContext(&ctx) < 0) {
+        SDLTest_Log("Could not load GLES2 functions\n");
+        quit(2);
+        return 0;
+    }
+
+
+
+    if (state->render_flags & SDL_RENDERER_PRESENTVSYNC) {
+        SDL_GL_SetSwapInterval(1);
+    } else {
+        SDL_GL_SetSwapInterval(0);
+    }
+
+    SDL_GetCurrentDisplayMode(0, &mode);
+    SDLTest_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode.format));
+    SDLTest_Log("\n");
+    SDLTest_Log("Vendor     : %s\n", ctx.glGetString(GL_VENDOR));
+    SDLTest_Log("Renderer   : %s\n", ctx.glGetString(GL_RENDERER));
+    SDLTest_Log("Version    : %s\n", ctx.glGetString(GL_VERSION));
+    SDLTest_Log("Extensions : %s\n", ctx.glGetString(GL_EXTENSIONS));
+    SDLTest_Log("\n");
+
+    status = SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &value);
+    if (!status) {
+        SDLTest_Log("SDL_GL_RED_SIZE: requested %d, got %d\n", 5, value);
+    } else {
+        SDLTest_Log( "Failed to get SDL_GL_RED_SIZE: %s\n",
+                SDL_GetError());
+    }
+    status = SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &value);
+    if (!status) {
+        SDLTest_Log("SDL_GL_GREEN_SIZE: requested %d, got %d\n", 5, value);
+    } else {
+        SDLTest_Log( "Failed to get SDL_GL_GREEN_SIZE: %s\n",
+                SDL_GetError());
+    }
+    status = SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &value);
+    if (!status) {
+        SDLTest_Log("SDL_GL_BLUE_SIZE: requested %d, got %d\n", 5, value);
+    } else {
+        SDLTest_Log( "Failed to get SDL_GL_BLUE_SIZE: %s\n",
+                SDL_GetError());
+    }
+    status = SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &value);
+    if (!status) {
+        SDLTest_Log("SDL_GL_DEPTH_SIZE: requested %d, got %d\n", depth, value);
+    } else {
+        SDLTest_Log( "Failed to get SDL_GL_DEPTH_SIZE: %s\n",
+                SDL_GetError());
+    }
+    if (fsaa) {
+        status = SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &value);
+        if (!status) {
+            SDLTest_Log("SDL_GL_MULTISAMPLEBUFFERS: requested 1, got %d\n", value);
+        } else {
+            SDLTest_Log( "Failed to get SDL_GL_MULTISAMPLEBUFFERS: %s\n",
+                    SDL_GetError());
+        }
+        status = SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &value);
+        if (!status) {
+            SDLTest_Log("SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", fsaa,
+                   value);
+        } else {
+            SDLTest_Log( "Failed to get SDL_GL_MULTISAMPLESAMPLES: %s\n",
+                    SDL_GetError());
+        }
+    }
+    if (accel) {
+        status = SDL_GL_GetAttribute(SDL_GL_ACCELERATED_VISUAL, &value);
+        if (!status) {
+            SDLTest_Log("SDL_GL_ACCELERATED_VISUAL: requested 1, got %d\n", value);
+        } else {
+            SDLTest_Log( "Failed to get SDL_GL_ACCELERATED_VISUAL: %s\n",
+                    SDL_GetError());
+        }
+    }
+
+    datas = SDL_calloc(state->num_windows, sizeof(shader_data));
+
+    /* Set rendering settings for each context */
+    for (i = 0; i < state->num_windows; ++i) {
+
+        int w, h;
+        status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
+        if (status) {
+            SDLTest_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
+
+            /* Continue for next window */
+            continue;
+        }
+        SDL_GL_GetDrawableSize(state->windows[i], &w, &h);
+        ctx.glViewport(0, 0, w, h);
+
+        data = &datas[i];
+        data->angle_x = 0; data->angle_y = 0; data->angle_z = 0;
+
+        /* Shader Initialization */
+        process_shader(&data->shader_vert, _shader_vert_src, GL_VERTEX_SHADER);
+        process_shader(&data->shader_frag, _shader_frag_src, GL_FRAGMENT_SHADER);
+
+        /* Create shader_program (ready to attach shaders) */
+        data->shader_program = GL_CHECK(ctx.glCreateProgram());
+
+        /* Attach shaders and link shader_program */
+        GL_CHECK(ctx.glAttachShader(data->shader_program, data->shader_vert));
+        GL_CHECK(ctx.glAttachShader(data->shader_program, data->shader_frag));
+        GL_CHECK(ctx.glLinkProgram(data->shader_program));
+
+        /* Get attribute locations of non-fixed attributes like color and texture coordinates. */
+        data->attr_position = GL_CHECK(ctx.glGetAttribLocation(data->shader_program, "av4position"));
+        data->attr_color = GL_CHECK(ctx.glGetAttribLocation(data->shader_program, "av3color"));
+
+        /* Get uniform locations */
+        data->attr_mvp = GL_CHECK(ctx.glGetUniformLocation(data->shader_program, "mvp"));
+
+        GL_CHECK(ctx.glUseProgram(data->shader_program));
+
+        /* Enable attributes for position, color and texture coordinates etc. */
+        GL_CHECK(ctx.glEnableVertexAttribArray(data->attr_position));
+        GL_CHECK(ctx.glEnableVertexAttribArray(data->attr_color));
+
+        /* Populate attributes for position, color and texture coordinates etc. */
+        GL_CHECK(ctx.glVertexAttribPointer(data->attr_position, 3, GL_FLOAT, GL_FALSE, 0, _vertices));
+        GL_CHECK(ctx.glVertexAttribPointer(data->attr_color, 3, GL_FLOAT, GL_FALSE, 0, _colors));
+
+        GL_CHECK(ctx.glEnable(GL_CULL_FACE));
+        GL_CHECK(ctx.glEnable(GL_DEPTH_TEST));
+    }
+
+    /* Main render loop */
+    frames = 0;
+    then = SDL_GetTicks();
+    done = 0;
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(loop, 0, 1);
+#else
+    while (!done) {
+        loop();
+    }
+#endif
+
+    /* Print out some timing information */
+    now = SDL_GetTicks();
+    if (now > then) {
+        SDLTest_Log("%2.2f frames per second\n",
+               ((double) frames * 1000) / (now - then));
+    }
+#if !defined(__ANDROID__) && !defined(__NACL__)  
+    quit(0);
+#endif    
+    return 0;
+}
+
+#else /* HAVE_OPENGLES2 */
 
 int
 main(int argc, char *argv[])
 {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No OpenGL support on this system\n");
+    SDLTest_Log("No OpenGL ES support on this system\n");
     return 1;
 }
 
-#endif /* HAVE_OPENGL */
+#endif /* HAVE_OPENGLES2 */
 
 /* vi: set ts=4 sw=4 expandtab: */
